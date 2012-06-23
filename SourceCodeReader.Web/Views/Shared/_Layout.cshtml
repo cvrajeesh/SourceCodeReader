@@ -1,0 +1,36 @@
+﻿<!doctype html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>SourceCodeReader - Read and learn</title>
+		<link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+		<meta name="viewport" content="width=device-width" />
+        @Scripts.Render("~/bundles/modernizr")
+        @Styles.Render("~/Content/bootrap", "~/Content/css")
+	</head>
+	<body>
+		<!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
+		<header class="header dockrow">
+			<div class="navbar navbar-fixed-top">
+			  <div class="navbar-inner">
+				<div class="container">        
+				  <span class="brand">Source Code Reader</span> 
+                  @RenderSection("PageSpecificMenu", false)
+				</div>
+			  </div>
+			</div>
+		</header>
+		<section class="container body dockrow">
+			@RenderBody()
+		</section>
+		<footer class="container footer dockrow">
+              <p>&copy; @DateTime.UtcNow.Year SourceCodeReader</p>
+		</footer>
+        @Scripts.Render("~/bundles/jquery","~/bundles/bootstrap")
+        @RenderSection("scripts", required: false)
+	</body>
+</html>

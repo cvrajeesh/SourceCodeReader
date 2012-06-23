@@ -2,5 +2,11 @@
 bin
 obj
 
-# mstest test results
-TestResults
+
+*.suo
+
+*.user
+
+packages/
+logs/
+Projects/

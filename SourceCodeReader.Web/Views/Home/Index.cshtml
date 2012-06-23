@@ -1,0 +1,74 @@
+﻿@section PageSpecificMenu
+{
+    <ul class="nav pull-right" data-bind="visible: projectIsActive">       
+        <li><a href="/">Close Sroject</a></li>
+    </ul>     
+}
+
+<div class="centerstage" id="main">
+
+    <div data-bind="with: projectInfo">    
+          <label for="projectUrl">Please enter GitHub project Url:</label>  
+          <input type="text" name="projectUrl" data-bind="value: url, valueUpdate: 'afterkeydown'" class="input-large" />
+          <span data-bind="visible: hasError">Please enter valid url</span>
+          <div> <button type="submit" class="btn btn-large" data-bind="click: open, css: { disabled: hasError }, attr: {disabled: hasError}">Open project</button></div>
+    </div>
+    <div data-bind="with: project">
+        <div class="projectheader dockrow ">
+            <h3><span data-bind="text: username"></span>/<span data-bind="text: name"></span></h3>     
+            <ul class="breadcrumb"  data-bind="foreach: breadcrumbs">
+              <li data-bind="visible: active">
+                <a data-bind="text: text, attr: {href: url}"></a> <span class="divider">/</span>
+              </li>  
+              <li data-bind="visible: !active, text: text, css: { active: !active}">
+              </li>        
+            </ul>
+        </div>
+        <div class="projectcontent dockrow scroll-x scroll-y">
+            <div class="showprogress" data-bind="visible: inProgress"></div>
+            <div data-bind="with: file">
+                <pre data-bind="text: content">
+                </pre>
+            </div>
+            <div data-bind="visible: directories().length > 0 || files().length > 0">
+                <table class="table">
+                    <thead>
+	                    <tr>
+		                    <th class="iconcolumn"></th>
+		                    <th>Name</th>  
+                            <th>Path</th>            
+	                    </tr>
+                    </thead>
+                    <tbody>
+	                    <!-- ko foreach: directories -->
+	                    <tr>
+		                    <td><i class="icon-folder-open"></i></td>
+		                    <td><a data-bind="text: name, attr: { href: $parent.buildUrl('/' + path)}"></a></td>
+		                    <td data-bind="text: path"></td>
+	                    </tr>
+	                    <!-- /ko -->
+
+	                    <!-- ko foreach: files -->
+	                    <tr>
+			                    <td><i class="icon-file"></i></td>
+		                    <td><a data-bind="text: name, attr: { href: $parent.buildUrl('/' + path)}"></a></td>
+                                <td data-bind="text: path"></td>
+	                    </tr>
+	                    <!-- /ko -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="statusbar dockrow" data-bind="text: $root.projectStatus">
+        </div>
+    </div>
+
+</div>
+
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval", "~/bundles/spa", "~/bundles/signalr")    
+     <script type="text/javascript" src="/signalr/hubs"></script>
+     @Scripts.Render("~/bundles/applicationjs")
+}

@@ -13,6 +13,7 @@ using System.Collections;
     public class CSharpSyntaxNavigationBuilderTests
     {
 
+        [Ignore]
         [Test, TestCaseSource(typeof(NavigatableSyntaxTestCasesFactory), "TestCases")]
         public string Tests_For_Builder(string sourceCode)
         {

@@ -27,7 +27,7 @@
         <div class="projectcontent dockrow scroll-x scroll-y">
             <div class="showprogress" data-bind="visible: inProgress"></div>
             <div data-bind="with: file">
-                <pre data-bind="text: content">
+                <pre data-bind="html: content"  id="sourcecodeviewer">
                 </pre>
             </div>
             <div data-bind="visible: directories().length > 0 || files().length > 0">
@@ -61,6 +61,9 @@
         </div>
         <div class="statusbar dockrow" data-bind="text: $root.projectStatus">
         </div>
+    </div>
+    <div data-bind="foreach: findResult">
+        <div><span data-bind="text: FileName"></span> at <span data-bind="text: Position"></span></div>
     </div>
 
 </div>

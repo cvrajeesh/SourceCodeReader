@@ -15,9 +15,15 @@ namespace SourceCodeReader.Web
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{username}/{project}/{*path}",
-                defaults: new { path = RouteParameter.Optional }
+                name: "SolutionApi",
+                routeTemplate: "api/solution/{action}",
+                defaults: new { controller = "Solution" }
+            );
+
+            routes.MapHttpRoute(
+                name: "ProjectApi",
+                routeTemplate: "api/project/{username}/{project}/{*path}",
+                defaults: new { controller = "Project", path = RouteParameter.Optional }
             );
 
             routes.MapRoute(

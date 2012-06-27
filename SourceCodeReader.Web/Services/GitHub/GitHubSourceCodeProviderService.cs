@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using SourceCodeReader.Web.Models;
-using System.Net.Http;
-using System.Configuration;
-using SourceCodeReader.Web.Infrastructure;
-using System.Net;
 using System.IO;
+using System.Net;
 using Ionic.Zip;
+using SourceCodeReader.Web.Infrastructure;
+using SourceCodeReader.Web.LanguageServices;
+using SourceCodeReader.Web.Models;
+using Ninject.Extensions.Logging;
 
 namespace SourceCodeReader.Web.Services.GitHub
 {
@@ -17,26 +14,26 @@ namespace SourceCodeReader.Web.Services.GitHub
         private ISourceCodeOpeningProgress openingProgress;
         private IProjectDiscoveryService projectDiscoveryService;
         private IApplicationConfigurationProvider applicationConfigurationProvider;
-        
+        private IEditorService editorService;
+        private ILogger logger;
 
-        public GitHubSourceCodeProviderService(ISourceCodeOpeningProgress openingProgress, 
+        // TODO: Feels like too much dependencies, think about refactoring if needed
+        public GitHubSourceCodeProviderService(
+            ISourceCodeOpeningProgress openingProgress, 
             IProjectDiscoveryService projectDiscoveryService,
-            IApplicationConfigurationProvider applicationConfigurationProvider)
+            IApplicationConfigurationProvider applicationConfigurationProvider,
+            IEditorService editorService,
+            ILogger logger)
         {
             this.openingProgress = openingProgress;
             this.projectDiscoveryService = projectDiscoveryService;
             this.applicationConfigurationProvider = applicationConfigurationProvider;
+            this.editorService = editorService;
+            this.logger = logger;
         }
 
         public ProjectItem GetContent(string username, string project, string path)
         {
-            /*             
-             * 1. Verify whether the project exists
-             * 2. Get the project information
-             * 3. Download the ZipBall to Amazon, if new version is available
-             * 4. Extract to a location
-             * 5. Return the content
-             */
             var projectSourceCodePath = this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project);
             if (!Directory.Exists(projectSourceCodePath))
             {
@@ -73,9 +70,10 @@ namespace SourceCodeReader.Web.Services.GitHub
                     this.ExtractZipBall(packagePath, projectSourceCodePath);
                     this.openingProgress.OnProjectLoaded();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     this.openingProgress.OnProjectLoadingError();
+                    this.logger.Error(ex, "An error has occured while getting the content for path {0} from project {1}/{2}", path, username, project);
                     return null;
                 }
             }
@@ -83,7 +81,7 @@ namespace SourceCodeReader.Web.Services.GitHub
             return GetContentFromPath(projectSourceCodePath, path);
         }
 
-        public ProjectItem GetContentFromPath(string projectSourceCodePath, string path)
+        private ProjectItem GetContentFromPath(string projectSourceCodePath, string path)
         {
             var repositoryDirectory = new DirectoryInfo(projectSourceCodePath);
             DirectoryInfo applicationRoot = repositoryDirectory.GetDirectories()[0];
@@ -111,7 +109,7 @@ namespace SourceCodeReader.Web.Services.GitHub
                         var fileItem = new ProjectItem { Type = ProjectItemType.File };
                         fileItem.Path = path;
                         fileItem.Name = Path.GetFileName(fullPath);
-                        fileItem.Content = File.ReadAllText(fullPath);
+                        fileItem.Content = this.editorService.BuildNavigatableSourceCodeFromFile(fullPath);
                         return fileItem;
                     }
                     else
@@ -129,7 +127,7 @@ namespace SourceCodeReader.Web.Services.GitHub
 
         }
 
-        private static ProjectItem GetDirectoryContent(string path, DirectoryInfo applicationRoot, string currentDirectoryName)
+        private ProjectItem GetDirectoryContent(string path, DirectoryInfo applicationRoot, string currentDirectoryName)
         {
             var rootDirectory = new ProjectItem();
             rootDirectory.Type = ProjectItemType.Directory;
@@ -202,6 +200,6 @@ namespace SourceCodeReader.Web.Services.GitHub
                 zipFile.ExtractAll(destinationDirectory, ExtractExistingFileAction.OverwriteSilently);
             }
         }
-
+    
     }
 }

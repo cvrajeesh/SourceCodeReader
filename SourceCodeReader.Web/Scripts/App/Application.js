@@ -13,7 +13,7 @@ function fileViewModel(name, path, content) {
 
     self.name = name;
     self.path = path;
-    self.content = content;
+    self.content = content;    
 };
 
 // View model which represents a project item
@@ -78,8 +78,13 @@ function projectViewModel(name, username, path) {
     // Load the project
     self.openProject = function () {
         var projectUrl = '/api/project/' + self.username() + '/' + self.name() + '/';
-        if (self.path()) {
-            projectUrl += self.path();
+        var path = self.path();
+        if (path) {
+            projectUrl += path;
+            // if filename, then request should end with '/' otherwise server reject request if it has forbidden extensions
+            if (path.substring(path.length - 1) != '/') {
+                projectUrl += '/';
+            }
         }
         $.get(projectUrl, function (data) {
             if (data) {
@@ -96,7 +101,7 @@ function projectViewModel(name, username, path) {
                         }
                     }
                 } else if (data.Type == 0) {
-                    self.file(new fileViewModel(data.Name, data.Path, data.Content));
+                    self.file(new fileViewModel(data.Name, data.Path, data.Content));                    
                 } else {
                     // Do nothing
                 }
@@ -153,6 +158,7 @@ function appViewModel() {
     self.project = ko.observable();
     self.projectIsActive = ko.observable();
     self.projectStatus = ko.observable();
+    self.findResult = ko.observableArray();
 
     self.projectHub = $.connection.projectHub;
 
@@ -165,6 +171,25 @@ function appViewModel() {
                 self.projectStatus(data.Message);
             }
         }
+    };
+
+    self.findReferences = function (kind, text, position) {
+        var project = self.project();
+        var currentFilePath = project.file().path;
+        var findReferencesUrl = '/api/solution/findreferences';
+
+        $.post(findReferencesUrl,
+            {
+                username: project.username(),
+                project: project.name(),
+                path: currentFilePath,
+                text: text,
+                position: position
+            },
+            function (result) {
+                self.findResult(result);
+            }
+        );
     };
     
     // Routing handlers
@@ -197,5 +222,13 @@ function appViewModel() {
 };
 
 $(function () {
-    ko.applyBindings(new appViewModel());
+
+    var application = new appViewModel();
+    ko.applyBindings(application);
+
+    $.findReferences = function (kind, text, position) {
+        if (application) {
+            application.findReferences(kind, text, position);
+        }
+    };
 });

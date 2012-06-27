@@ -12,6 +12,8 @@ namespace SourceCodeReader.Web
     {
         public static void Start()
         {
+            log4net.Config.XmlConfigurator.Configure();
+
             var kernal = new Ninject.StandardKernel();
             kernal.Load(new[] { Assembly.GetExecutingAssembly()});
             GlobalConfiguration.Configuration.DependencyResolver = new NinjectDependencyResolver(kernal);

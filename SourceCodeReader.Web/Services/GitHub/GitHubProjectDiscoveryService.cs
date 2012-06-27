@@ -4,11 +4,19 @@ using System.Linq;
 using System.Web;
 using SourceCodeReader.Web.Models;
 using RestSharp;
+using Ninject.Extensions.Logging;
 
 namespace SourceCodeReader.Web.Services.GitHub
 {
     public class GitHubProjectDiscoveryService : IProjectDiscoveryService
     {
+        private ILogger logger;
+
+        public GitHubProjectDiscoveryService(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
         public Project FindProject(string username, string projectName)
         {
             var gitHubApi = new GitHubApi(username, projectName);
@@ -31,8 +39,9 @@ namespace SourceCodeReader.Web.Services.GitHub
                      Description = responseData.Description
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                this.logger.Error(ex, "An error has occured when finding project {0}/{1}", username, projectName);
                 return null;
             }
         }

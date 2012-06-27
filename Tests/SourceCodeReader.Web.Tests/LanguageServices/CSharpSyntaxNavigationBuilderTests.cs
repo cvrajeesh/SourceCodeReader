@@ -53,7 +53,7 @@ namespace Testing
     {
         public void TestMethod()
         {
-            Customer customer = new <a href=""#"">Customer</a>();
+            Customer customer = new <a href=""javascript:$.findReferences('ObjectCreation', 'Customer', 135)"">Customer</a>();
         }
     }
 }");
@@ -79,8 +79,8 @@ namespace Testing
     {
         public void TestMethod()
         {
-            Customer customer = new <a href=""#"">Customer</a>();
-            string result = customer.<a href=""#"">GetFullName</a>();
+            Customer customer = new <a href=""javascript:$.findReferences('ObjectCreation', 'Customer', 135)"">Customer</a>();
+            string result = customer.<a href=""javascript:$.findReferences('MethodCall', 'GetFullName', 185)"">GetFullName</a>();
         }
     }
 }");

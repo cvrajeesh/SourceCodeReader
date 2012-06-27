@@ -38,6 +38,7 @@ namespace SourceCodeReader.Web.LanguageServices
                 switch (tk)
                 {         
                     case TokenKind.ObjectCreation:
+                    case TokenKind.MethodCall:
                         htmlBuilder.Append(string.Format(@"<a href=""javascript:$.findReferences('{0}', '{1}', {2})"">{1}</a>", tk, text, start.GetValueOrDefault()));
                         break;
                     default:

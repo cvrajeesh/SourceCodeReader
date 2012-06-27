@@ -35,50 +35,46 @@ namespace SourceCodeReader.Web.Services.GitHub
         public ProjectItem GetContent(string username, string project, string path)
         {
             var projectSourceCodePath = this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project);
-            if (!Directory.Exists(projectSourceCodePath))
+            try
             {
-                string packagePath = this.applicationConfigurationProvider.GetProjectPackagePath(username, project);
-                if (!File.Exists(packagePath))
+                if (!Directory.Exists(projectSourceCodePath))
                 {
-                    this.openingProgress.OnFindProjectStarted();
-                    var projectSelected = this.projectDiscoveryService.FindProject(username, project);
-                    if (projectSelected == null)
+                    string packagePath = this.applicationConfigurationProvider.GetProjectPackagePath(username, project);
+                    if (!File.Exists(packagePath))
                     {
-                        this.openingProgress.OnProjectNotFound();
-                        return null;
+                        this.openingProgress.OnFindProjectStarted();
+                        var projectSelected = this.projectDiscoveryService.FindProject(username, project);
+                        if (projectSelected == null)
+                        {
+                            this.openingProgress.OnProjectNotFound();
+                            return null;
+                        }
+                        this.openingProgress.OnProjectFound();
+                        this.applicationConfigurationProvider.ProjectsRoot.EnsureDirectoryExists();
+                        this.openingProgress.OnProjectDownloadStarted();
+                        var downloadStatus = this.DownloadZipBall(packagePath, projectSelected.DownloadPackageUrl);
+                        if (!downloadStatus)
+                        {
+                            this.openingProgress.OnProjectDownloadFailed();
+                            return null;
+                        }
+
+                        this.openingProgress.OnProjectDownloadCompleted();
+                        this.openingProgress.OnProjectPreparing();
+                        this.ExtractZipBall(packagePath, projectSourceCodePath);
+                        this.openingProgress.OnProjectLoaded();
                     }
-                    this.openingProgress.OnProjectFound();
 
-                    this.applicationConfigurationProvider.ProjectsRoot.EnsureDirectoryExists();
-
-                    this.openingProgress.OnProjectDownloadStarted();
-
-                    var downloadStatus = this.DownloadZipBall(packagePath, projectSelected.DownloadPackageUrl);
-
-                    if (!downloadStatus)
-                    {
-                        this.openingProgress.OnProjectDownloadFailed();
-                        return null;
-                    }
-
-                    this.openingProgress.OnProjectDownloadCompleted();
                 }
 
-                try
-                {
-                    this.openingProgress.OnProjectPreparing();
-                    this.ExtractZipBall(packagePath, projectSourceCodePath);
-                    this.openingProgress.OnProjectLoaded();
-                }
-                catch (Exception ex)
-                {
-                    this.openingProgress.OnProjectLoadingError();
-                    this.logger.Error(ex, "An error has occured while getting the content for path {0} from project {1}/{2}", path, username, project);
-                    return null;
-                }
+                return GetContentFromPath(projectSourceCodePath, path);
             }
-
-            return GetContentFromPath(projectSourceCodePath, path);
+            catch (Exception ex)
+            {
+                this.openingProgress.OnProjectLoadingError();
+                this.logger.Error(ex, "An error has occured while getting the content for path {0} from project {1}/{2}", path, username, project);
+                return null;
+            }
         }
 
         private ProjectItem GetContentFromPath(string projectSourceCodePath, string path)

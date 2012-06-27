@@ -12,6 +12,12 @@ using System.Collections;
     [TestFixture]
     public class CSharpSyntaxNavigationBuilderTests
     {
+        private CSharpSyntaxNavigationBuilder codeNavigationBuilder;
+        [SetUp]
+        public void SetUp()
+        {
+            codeNavigationBuilder = new CSharpSyntaxNavigationBuilder();
+        }
 
         [Ignore]
         [Test, TestCaseSource(typeof(NavigatableSyntaxTestCasesFactory), "TestCases")]
@@ -19,10 +25,44 @@ using System.Collections;
         {
             // Assemble
             // TODO: Move to setup, for some weired reason, setup is not getting alled from TestDriven.Net
-            CSharpSyntaxNavigationBuilder codeNavigationBuilder = new CSharpSyntaxNavigationBuilder();
+           // CSharpSyntaxNavigationBuilder codeNavigationBuilder = new CSharpSyntaxNavigationBuilder();
 
             // Act
             return codeNavigationBuilder.GetCodeAsNavigatableHtml(sourceCode);
+        }
+
+        public void Can_Build_Navigation_For_ObjectCreation()
+        {
+            // Assemble
+            var sourceCode = @"
+namespace Testing
+{
+    public class Test
+    {
+        public void TestMethod()
+        {
+            Customer customer = new Customer();
+        }
+    }
+}";
+
+            var expectedResultPattern = @"
+namespace Testing
+{
+    public class Test
+    {
+        public void TestMethod()
+        {
+            Customer customer = new <a href=""javascript:$.findReferences('ObjectCreation', 'Customer', .+)"">Customer</a>();
+        }
+    }
+}";
+
+            // Act
+            var result = codeNavigationBuilder.GetCodeAsNavigatableHtml(sourceCode);
+
+            // Assert
+            Assert.That(sourceCode, Is.StringMatching(expectedResultPattern));
         }
         
     }
@@ -54,7 +94,7 @@ namespace Testing
     {
         public void TestMethod()
         {
-            Customer customer = new <a href=""javascript:$.findReferences('ObjectCreation', 'Customer', 135)"">Customer</a>();
+            Customer customer = new <a href=""javascript:$.findReferences('ObjectCreation', 'Customer', *)"">Customer</a>();
         }
     }
 }");

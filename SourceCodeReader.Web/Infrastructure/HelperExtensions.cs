@@ -11,11 +11,7 @@ namespace SourceCodeReader.Web.Infrastructure
         public static void EnsureDirectoryExists(this string path)
         {
             var directoryPath = path;
-            if (path.IsFilePath())
-            {
-                directoryPath = Path.GetDirectoryName(path);
-            }
-             
+          
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);

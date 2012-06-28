@@ -7,13 +7,13 @@
 
 <div class="centerstage" id="main">
 
-    <div data-bind="with: projectInfo">    
-          <label for="projectUrl">Please enter GitHub project Url:</label>  
+    <div data-bind="with: projectInfo" class="loginscreen">    
+          <label for="projectUrl">Enter GitHub Project link (e.g. https://github.com/cvrajeesh/SourceCodeReader)</label>  
           <input type="text" name="projectUrl" data-bind="value: url, valueUpdate: 'afterkeydown'" class="input-large" />
           <span data-bind="visible: hasError">Please enter valid url</span>
           <div> <button type="submit" class="btn btn-large" data-bind="click: open, css: { disabled: hasError }, attr: {disabled: hasError}">Open project</button></div>
     </div>
-    <div data-bind="with: project">
+    <div data-bind="with: project, visible: isReady">
         <div class="projectheader dockrow ">
             <h3><span data-bind="text: username"></span>/<span data-bind="text: name"></span></h3>     
             <ul class="breadcrumb"  data-bind="foreach: breadcrumbs">
@@ -62,7 +62,7 @@
         <div class="statusbar dockrow" data-bind="text: $root.projectStatus">
         </div>
     </div>
-    <div data-bind="foreach: findResult">
+    <div data-bind="foreach: findResult, visible: isReady">
         <div><span data-bind="text: FileName"></span> at <span data-bind="text: Position"></span></div>
     </div>
 

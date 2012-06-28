@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Configuration;
 using System.IO;
+using System.Web.Hosting;
 
 namespace SourceCodeReader.Web.Infrastructure
 {
@@ -37,7 +38,7 @@ namespace SourceCodeReader.Web.Infrastructure
         {
             get
             {
-                return System.IO.Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.FullName;
+                return Path.Combine(HostingEnvironment.ApplicationPhysicalPath, "App_Data");               
             }
         }
 

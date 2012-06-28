@@ -154,6 +154,7 @@ function projectInfoViewModel() {
 function appViewModel() {
     var self = this;
 
+    self.isReady = ko.observable(false);
     self.projectInfo = ko.observable();
     self.project = ko.observable();
     self.projectIsActive = ko.observable();
@@ -219,6 +220,7 @@ function appViewModel() {
     }).run();
 
     $.connection.hub.start();
+    self.isReady(true);
 };
 
 $(function () {

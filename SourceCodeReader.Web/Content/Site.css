@@ -21,7 +21,17 @@ body {
 
 .centerstage
 {
-    margin: auto 0;
+    position: absolute;
+    top:0;
+    bottom:0;
+    width: 100%;
+}
+
+.loginscreen {
+	position: absolute;
+	top: 30%;
+	left: 30%;
+	width: 50%;
 }
 
 .projectheader .dockrow  
@@ -93,3 +103,7 @@ body {
     width: 15px;
 }
 
+.hide
+{
+    display: none;
+}

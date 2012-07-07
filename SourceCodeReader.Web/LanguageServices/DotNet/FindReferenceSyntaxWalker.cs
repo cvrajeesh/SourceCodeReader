@@ -6,7 +6,7 @@ using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Compilers.CSharp.Retargeting;
 
-namespace SourceCodeReader.Web.LanguageServices
+namespace SourceCodeReader.Web.LanguageServices.DotNet
 {
     internal class FindReferenceSyntaxWalker : CommonSyntaxWalker
     {

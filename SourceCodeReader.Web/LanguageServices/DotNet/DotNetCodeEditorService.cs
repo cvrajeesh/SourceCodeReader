@@ -10,7 +10,7 @@ using Roslyn.Compilers.Common;
 using Ninject.Extensions.Logging;
 using System.Threading.Tasks;
 
-namespace SourceCodeReader.Web.LanguageServices
+namespace SourceCodeReader.Web.LanguageServices.DotNet
 {
     public class DotNetCodeEditorService : IEditorService
     {
@@ -32,15 +32,16 @@ namespace SourceCodeReader.Web.LanguageServices
         {
             var sourceCode = File.ReadAllText(filename);
             var fileExtension = Path.GetExtension(filename).ToLowerInvariant();
-           
+
+            ISyntaxNavigationBuilder syntaxNavigationBuilder = new DotNetSyntaxNavigationBuilder();
+
             if (fileExtension == ".cs")
             {
-                var syntaxHighlighter = new CSharpSyntaxNavigationBuilder();
-                return syntaxHighlighter.GetCodeAsNavigatableHtml(sourceCode);
+                return syntaxNavigationBuilder.GetCodeAsNavigatableHtml(sourceCode, new CSharpCodeNavigationSyntaxWalker());
             }
             else if (fileExtension == ".vb")
             {
-                return sourceCode;
+                return syntaxNavigationBuilder.GetCodeAsNavigatableHtml(sourceCode, new VisualBasicCodeNavigationSyntaxWalker());
             }
             else
             {

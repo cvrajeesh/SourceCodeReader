@@ -4,9 +4,9 @@ using System.Linq;
 using System.Web;
 using Roslyn.Compilers.CSharp;
 
-namespace SourceCodeReader.Web.LanguageServices
+namespace SourceCodeReader.Web.LanguageServices.DotNet
 {
-    internal enum TokenKind
+    public enum TokenKind
     {
         None,     
         MethodCall,
@@ -16,16 +16,15 @@ namespace SourceCodeReader.Web.LanguageServices
     /// <summary>
     /// Idea copied from http://www.matlus.com/c-to-html-syntax-highlighter-using-roslyn/
     /// </summary>
-    internal class CSharpCodeNavigationSyntaxWalker : SyntaxWalker
+    public class CSharpCodeNavigationSyntaxWalker : SyntaxWalker, IDotNetSourceCodeNavigationSyntaxWalker
     {
-        private SemanticModel semanticModel;
         private Action<TokenKind, string, int?> writeDelegate;
 
-        internal void DoVisit(SyntaxNode token, SemanticModel semanticModel, Action<TokenKind, string, int?> writeDelegate)
+        public void DoVisit(string sourceCode, Action<TokenKind, string, int?> writeDelegate)
         {
-            this.semanticModel = semanticModel;
+            var syntaxTree = SyntaxTree.ParseCompilationUnit(sourceCode);
             this.writeDelegate = writeDelegate;
-            Visit(token);
+            Visit(syntaxTree.GetRoot());
         }
 
         public override void VisitToken(SyntaxToken token)
@@ -67,9 +66,10 @@ namespace SourceCodeReader.Web.LanguageServices
                 return TokenKind.ObjectCreation;
 
             // string result = customer.GetFulleName();
-            if (token.Parent.Parent.Kind == SyntaxKind.MemberAccessExpression
+            if ((token.Parent.Parent.Kind == SyntaxKind.MemberAccessExpression
                 && token.Parent.Parent.Parent.Kind == SyntaxKind.InvocationExpression
-                && token.GetPreviousToken().Kind == SyntaxKind.DotToken)
+                && token.GetPreviousToken().Kind == SyntaxKind.DotToken) ||
+            (token.Parent.Parent.Kind == SyntaxKind.InvocationExpression))
                 return TokenKind.MethodCall;
 
             return TokenKind.None;

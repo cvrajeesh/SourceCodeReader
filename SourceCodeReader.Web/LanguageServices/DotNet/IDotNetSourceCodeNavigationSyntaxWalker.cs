@@ -1,0 +1,12 @@
+﻿namespace SourceCodeReader.Web.LanguageServices.DotNet
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+
+    public interface IDotNetSourceCodeNavigationSyntaxWalker
+    {
+        void DoVisit(string sourceCode, Action<TokenKind, string, int?> writeDelegate);
+    }
+}

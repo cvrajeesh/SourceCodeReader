@@ -6,6 +6,7 @@ using Ninject.Modules;
 using SourceCodeReader.Web.Services;
 using SourceCodeReader.Web.Services.GitHub;
 using SourceCodeReader.Web.LanguageServices;
+using SourceCodeReader.Web.LanguageServices.DotNet;
 
 namespace SourceCodeReader.Web.Infrastructure
 {

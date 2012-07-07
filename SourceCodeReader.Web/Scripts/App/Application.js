@@ -162,6 +162,8 @@ function appViewModel() {
     self.projectIsActive = ko.observable();
     self.projectStatus = ko.observable();
     self.findResult = ko.observable();
+    self.showFindResultWindow = ko.observable(false);
+    self.findResultWindowTitle = ko.observable();
 
     self.projectHub = $.connection.projectHub;
 
@@ -182,10 +184,15 @@ function appViewModel() {
         }
     };
 
+    self.closeFindReferenceWindow = function () {
+        self.showFindResultWindow(false);
+    };
+
     self.findReferences = function (kind, text, position) {
         var project = self.project();
         var currentFilePath = project.file().path;
         var findReferencesUrl = '/api/solution/findreferences';
+        self.findResultWindowTitle('Find result for "' + text + '"');
 
         $.post(findReferencesUrl,
             {
@@ -196,10 +203,13 @@ function appViewModel() {
                 position: position
             },
             function (result) {
-                self.findResult({ items : result});
+                self.findResult({ items: result });
+                self.showFindResultWindow(true);
             }
         );
     };
+
+
     
     // Routing handlers
     Sammy('#main', function () {

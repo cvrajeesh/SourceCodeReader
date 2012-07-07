@@ -28,7 +28,7 @@ body {
 {
     height: 20px; 
     bottom: 0; 
-    font-size: 0.5em;
+    font-size: 0.85em;
 }
 
 #sourcecodeviewer
@@ -91,29 +91,29 @@ body {
 	background: url('/images/loader.gif') no-repeat center center;
 }
 
-.projectcontent::-webkit-scrollbar{
+.stylishscrollbar::-webkit-scrollbar{
     width:10px;
     height:10px;
     background-color:#fff;
     box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset -1px -1px 0 rgba(0,0,0,.07);
 }
-.projectcontent::-webkit-scrollbar:hover{
+.stylishscrollbar::-webkit-scrollbar:hover{
     background-color:#eee;
 }
-.projectcontent::-webkit-resizer{
+.stylishscrollbar::-webkit-resizer{
     -webkit-border-radius:4px;
     background-color:#666;
 }
-.projectcontent::-webkit-scrollbar-thumb{
+.stylishscrollbar::-webkit-scrollbar-thumb{
     min-height:0.8em;
     min-width:0.8em;
     background-color: rgba(0, 0, 0, .2);
     box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset -1px -1px 0 rgba(0,0,0,.07);
 }
-.projectcontent::-webkit-scrollbar-thumb:hover{
+.stylishscrollbar::-webkit-scrollbar-thumb:hover{
     background-color: #bbb;
 }
-.projectcontent::-webkit-scrollbar-thumb:active{
+.stylishscrollbar::-webkit-scrollbar-thumb:active{
     background-color:#888;
 }
 
@@ -125,4 +125,26 @@ body {
 .hide
 {
     display: none;
+}
+
+#findresult
+{
+    border: 1px solid #ddd;
+    border-bottom: none;
+    bottom: 34px;
+    background-color:#fff;  
+    font-size: 0.9em;    
+}
+
+.findresultheader
+{
+    padding: 7px 8px;
+    background-color: #ddd;    
+    background-repeat: repeat-x;
+    font-weight: bold;	
+}
+
+.findresultpane
+{
+    height: 150px;  
 }

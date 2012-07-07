@@ -24,7 +24,7 @@
               </li>        
             </ul>
         </div>
-        <div class="projectcontent dockrow scroll-x scroll-y">
+        <div class="projectcontent stylishscrollbar dockrow scroll-x scroll-y">
             <div class="showprogress" data-bind="visible: inProgress"></div>
             <div data-bind="with: file">
                 <pre data-bind="html: content"  id="sourcecodeviewer">
@@ -59,32 +59,34 @@
                 </table>
             </div>
         </div>
+        <div data-bind="with: $root.findResult, visible: $root.showFindResultWindow" id="findresult" class="dockrow">
+            <button class="close" data-bind="click: $root.closeFindReferenceWindow">&times;</button>
+            <div class="findresultheader"><span data-bind="text: $root.findResultWindowTitle"></span></div>
+            <div class="findresultpane container stylishscrollbar scroll-x scroll-y">
+                <table class="table">
+                    <thead>
+	                    <tr>		             
+		                    <th>Filename</th>  
+                            <th>Path</th>
+                            <th>Line Number</th>            
+	                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- ko foreach: items -->
+                        <tr>
+                            <td data-bind="text: FileName"></td>
+                            <td data-bind="text: Path"></td>
+                            <td data-bind="text: Position"></td>
+                        </tr>
+                    <!-- /ko -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <div class="statusbar dockrow" data-bind="text: $root.projectStatus">
         </div>
     </div>   
-    <div data-bind="with: findResult">
-        <div><a href='#findresult' data-toggle="collapse" data-target="#findresult">Find Result</a></div>
-        <div id="findresult">
-            <table class="table">
-                <thead>
-	                <tr>		             
-		                <th>Filename</th>  
-                        <th>Path</th>
-                        <th>Line Number</th>            
-	                </tr>
-                </thead>
-                <tbody>
-                <!-- ko foreach: items -->
-                    <tr>
-                        <td data-bind="text: FileName"></td>
-                        <td data-bind="text: Path"></td>
-                        <td data-bind="text: Position"></td>
-                    </tr>
-                <!-- /ko -->
-                </tbody>
-            </table>
-        </div>
-    </div>
+    
 
 </div>
 

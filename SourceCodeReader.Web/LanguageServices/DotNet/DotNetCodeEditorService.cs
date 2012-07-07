@@ -65,24 +65,37 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
             this.findReferenceProgressListener.OnFindReferenceInProgress();
 
-            var workspace = Roslyn.Services.Workspace.LoadSolution(solutionPath);
+            var workspace = Roslyn.Services.Workspace.LoadSolution(solutionPath);           
             var currentFilePath = Path.Combine(projectCodeDirectory.FullName, parameter.Path.Replace(@"/", @"\"));
             var solution = workspace.CurrentSolution;
 
             foreach (var project in solution.Projects)
             {
-                foreach (var document in project.Documents)
+
+                try
                 {
-                    var documentSemanticModel = document.GetSemanticModel();
-                    var findReferenceSyntaxtWalker = new FindReferenceSyntaxWalker();
-                    CommonSyntaxNode syntaxRoot = null;
-                    if (documentSemanticModel.SyntaxTree.TryGetRoot(out syntaxRoot))
+                    if (!project.HasDocuments)
                     {
-                        findReferenceSyntaxtWalker.DoVisit(syntaxRoot, parameter.Text, (foundLocation) =>
-                        {
-                            result.Add(new FindReferenceResult { FileName = document.Name, Path = document.FilePath, Position = foundLocation });
-                        });
+                        continue;
                     }
+
+                    foreach (var document in project.Documents)
+                    {
+                        var documentSemanticModel = document.GetSemanticModel();
+                        var findReferenceSyntaxtWalker = new FindReferenceSyntaxWalker();
+                        CommonSyntaxNode syntaxRoot = null;
+                        if (documentSemanticModel.SyntaxTree.TryGetRoot(out syntaxRoot))
+                        {
+                            findReferenceSyntaxtWalker.DoVisit(syntaxRoot, parameter.Text, (foundLocation) =>
+                            {
+                                result.Add(new FindReferenceResult { FileName = document.Name, Path = document.FilePath, Position = foundLocation });
+                            });
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    //TODO: Log
                 }
             }
 

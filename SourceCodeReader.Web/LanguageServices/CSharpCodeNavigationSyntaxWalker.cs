@@ -16,7 +16,7 @@ namespace SourceCodeReader.Web.LanguageServices
     /// <summary>
     /// Idea copied from http://www.matlus.com/c-to-html-syntax-highlighter-using-roslyn/
     /// </summary>
-    internal class CSharpSyntaxWalker : SyntaxWalker
+    internal class CSharpCodeNavigationSyntaxWalker : SyntaxWalker
     {
         private SemanticModel semanticModel;
         private Action<TokenKind, string, int?> writeDelegate;
@@ -30,11 +30,13 @@ namespace SourceCodeReader.Web.LanguageServices
 
         public override void VisitToken(SyntaxToken token)
         {
-            base.VisitLeadingTrivia(token);
+            VisitLeadingTrivia(token);
+            bool isProcessed = false;
 
             if (token.IsKeyword())
             {
                 writeDelegate(TokenKind.None, token.GetText(), null);
+                isProcessed = true;
             }
             else
             {
@@ -42,13 +44,19 @@ namespace SourceCodeReader.Web.LanguageServices
                 {
                     case SyntaxKind.IdentifierToken:
                         writeDelegate(this.GetTokenKind(token), token.GetText(), token.Span.Start);
+                        isProcessed = true;
                         break;
                     default:
                         writeDelegate(TokenKind.None, token.GetText(), null);
+                        isProcessed = true;
                         break;
                 }
             }
 
+            if (!isProcessed)
+            {
+                writeDelegate(TokenKind.None, token.GetText(), null);
+            }
             base.VisitTrailingTrivia(token);
         }
 
@@ -79,10 +87,9 @@ namespace SourceCodeReader.Web.LanguageServices
                 case SyntaxKind.RegionDirective:
                 case SyntaxKind.EndRegionDirective:
                 default:
-                    writeDelegate(TokenKind.None, trivia.GetText(), null);
+                    writeDelegate(TokenKind.None, trivia.GetFullText(), null);
                     break;
             }
-
             base.VisitTrivia(trivia);
         }
     }

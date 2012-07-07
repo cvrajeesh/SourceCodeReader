@@ -11,7 +11,7 @@
           <label for="projectUrl">Enter GitHub Project link (e.g. https://github.com/cvrajeesh/SourceCodeReader)</label>  
           <input type="text" name="projectUrl" data-bind="value: url, valueUpdate: 'afterkeydown'" class="input-large" />
           <span data-bind="visible: hasError">Please enter valid url</span>
-          <div> <button type="submit" class="btn btn-large" data-bind="click: open, css: { disabled: hasError }, attr: {disabled: hasError}">Open project</button></div>
+          <div> <button type="submit" class="btn btn-large" data-bind="click: open, css: { disabled: disableOpening }, attr: {disabled: disableOpening}">Open project</button></div>
     </div>
     <div data-bind="with: project, visible: isReady">
         <div class="projectheader dockrow ">
@@ -61,9 +61,29 @@
         </div>
         <div class="statusbar dockrow" data-bind="text: $root.projectStatus">
         </div>
-    </div>
-    <div data-bind="foreach: findResult, visible: isReady">
-        <div><span data-bind="text: FileName"></span> at <span data-bind="text: Position"></span></div>
+    </div>   
+    <div data-bind="with: findResult">
+        <div><a href='#findresult' data-toggle="collapse" data-target="#findresult">Find Result</a></div>
+        <div id="findresult">
+            <table class="table">
+                <thead>
+	                <tr>		             
+		                <th>Filename</th>  
+                        <th>Path</th>
+                        <th>Line Number</th>            
+	                </tr>
+                </thead>
+                <tbody>
+                <!-- ko foreach: items -->
+                    <tr>
+                        <td data-bind="text: FileName"></td>
+                        <td data-bind="text: Path"></td>
+                        <td data-bind="text: Position"></td>
+                    </tr>
+                <!-- /ko -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </div>

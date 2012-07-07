@@ -1,9 +1,16 @@
-﻿
+﻿@import url(http://fonts.googleapis.com/css?family=Merienda+One&text=Source%20Code%20Reader);
+
 
 body {   
     font-size: .85em;
     font-family: "Segoe UI", Verdana, Helvetica, Sans-Serif;
 }
+
+.navbar-inner span.brand {
+    font-family: 'Merienda One', cursive;
+    color: #fff;
+}
+
 
 .dockrow, .dockcol { overflow: hidden; position: absolute; }
 .dockrow { left: 0; right: 0; }
@@ -17,7 +24,18 @@ body {
     top: 0;      
 }
 .body.dockrow { top: 40px; bottom: 50px;}
-.footer.dockrow { height: 50px; bottom: 0; }
+.footer.dockrow  
+{
+    height: 20px; 
+    bottom: 0; 
+    font-size: 0.5em;
+}
+
+#sourcecodeviewer
+{
+    border: none;
+    border-radius: 0;
+}
 
 .centerstage
 {
@@ -40,8 +58,9 @@ body {
 }
 
 .projectcontent{
-	top: 80px;
+	top: 60px;
 	bottom: 31px;
+	border: 1px solid #DDDDDD;
 }
 
 

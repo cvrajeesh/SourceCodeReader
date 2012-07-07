@@ -30,7 +30,7 @@ namespace SourceCodeReader.Web.LanguageServices
                 references: new[] { mscorlib });
 
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
-            var htmlColorizerSyntaxWalker = new CSharpSyntaxWalker();
+            var htmlColorizerSyntaxWalker = new CSharpCodeNavigationSyntaxWalker();
 
             var htmlBuilder = new StringBuilder();
             htmlColorizerSyntaxWalker.DoVisit(syntaxTree.GetRoot(), semanticModel, (tk, text, start) =>
@@ -42,7 +42,7 @@ namespace SourceCodeReader.Web.LanguageServices
                         htmlBuilder.Append(string.Format(@"<a href=""javascript:$.findReferences('{0}', '{1}', {2})"">{1}</a>", tk, text, start.GetValueOrDefault()));
                         break;
                     default:
-                        htmlBuilder.Append(text);
+                        htmlBuilder.Append(System.Web.HttpUtility.HtmlEncode(text));
                         break;
                 }
             });

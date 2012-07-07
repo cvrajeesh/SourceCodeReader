@@ -198,7 +198,10 @@
     <Compile Include="Infrastructure\NinjectScope.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxNavigationBuilder.cs" />
     <Compile Include="LanguageServices\DotNetCodeEditorService.cs" />
-    <Compile Include="LanguageServices\CSharpSyntaxWalker.cs" />
+    <Compile Include="LanguageServices\CSharpCodeNavigationSyntaxWalker.cs" />
+    <Compile Include="LanguageServices\DefaultFindReferenceProgressListener.cs" />
+    <Compile Include="LanguageServices\FindReferenceSyntaxWalker.cs" />
+    <Compile Include="LanguageServices\IFindReferenceProgress.cs" />
     <Compile Include="Models\FindReferenceParameter.cs" />
     <Compile Include="Models\FindReferenceResult.cs" />
     <Compile Include="Models\Project.cs" />

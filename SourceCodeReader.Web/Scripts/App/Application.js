@@ -123,6 +123,7 @@ function projectInfoViewModel() {
     self.username = ko.observable();
     self.name = ko.observable();
     self.hasError = ko.observable();
+    self.disableOpening = ko.observable(true);
 
     // Validate project url url
     function validateUrl(url) {
@@ -138,6 +139,7 @@ function projectInfoViewModel() {
             }
         }
         self.hasError(!isValid);
+        self.disableOpening(!isValid);
     };
 
     // Subscribe to the url change to validate
@@ -159,7 +161,7 @@ function appViewModel() {
     self.project = ko.observable();
     self.projectIsActive = ko.observable();
     self.projectStatus = ko.observable();
-    self.findResult = ko.observableArray();
+    self.findResult = ko.observable();
 
     self.projectHub = $.connection.projectHub;
 
@@ -171,6 +173,12 @@ function appViewModel() {
             } else {
                 self.projectStatus(data.Message);
             }
+        }
+    };
+
+    self.projectHub.findReferenceStatus = function (data) {
+        if (data) {
+            self.projectStatus(data);
         }
     };
 
@@ -188,7 +196,7 @@ function appViewModel() {
                 position: position
             },
             function (result) {
-                self.findResult(result);
+                self.findResult({ items : result});
             }
         );
     };

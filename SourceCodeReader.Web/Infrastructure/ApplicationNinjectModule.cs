@@ -15,6 +15,7 @@ namespace SourceCodeReader.Web.Infrastructure
         {
             Bind<IEditorService>().To<DotNetCodeEditorService>();
             Bind<IApplicationConfigurationProvider>().To<ApplicationConfigurationProvider>();
+            Bind<IFindReferenceProgress>().To<DefaultFindReferenceProgressListener>();
             Bind<IProjectDiscoveryService>().To<GitHubProjectDiscoveryService>();
             Bind<ISourceCodeOpeningProgress>().To<DefaultSourceCodeOpeningProgressListener>();
             Bind<ISourceCodeProviderService>().To<GitHubSourceCodeProviderService>();

@@ -8,17 +8,23 @@ using SourceCodeReader.Web.Infrastructure;
 using Roslyn.Services;
 using Roslyn.Compilers.Common;
 using Ninject.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace SourceCodeReader.Web.LanguageServices
 {
     public class DotNetCodeEditorService : IEditorService
     {
         private IApplicationConfigurationProvider applicationConfigurationProvider;
+        private IFindReferenceProgress findReferenceProgressListener;
         private ILogger logger;
 
-        public DotNetCodeEditorService(IApplicationConfigurationProvider applicationConfigurationProvider, ILogger logger)
+        public DotNetCodeEditorService(
+            IApplicationConfigurationProvider applicationConfigurationProvider, 
+            IFindReferenceProgress findReferenceProgressListener,
+            ILogger logger)
         {
             this.applicationConfigurationProvider = applicationConfigurationProvider;
+            this.findReferenceProgressListener = findReferenceProgressListener;
             this.logger = logger;
         }
 
@@ -44,62 +50,42 @@ namespace SourceCodeReader.Web.LanguageServices
 
         public List<FindReferenceResult> FindRefernces(FindReferenceParameter parameter)
         {
-            var projectSourceCodeDirectory =  this.applicationConfigurationProvider.GetProjectSourceCodePath(parameter.Username, parameter.Project);
+            this.findReferenceProgressListener.OnFindReferenceStarted();
+
+            var projectSourceCodeDirectory = this.applicationConfigurationProvider.GetProjectSourceCodePath(parameter.Username, parameter.Project);
             var projectCodeDirectory = new DirectoryInfo(projectSourceCodeDirectory).GetDirectories()[0];
             var solutionPath = FindSolutionPath(projectCodeDirectory, parameter.Project);
             var result = new List<FindReferenceResult>();
             if (solutionPath == null)
             {
+                this.findReferenceProgressListener.OnFindReferenceCompleted(0);
                 return result;
             }
 
-            try
+            this.findReferenceProgressListener.OnFindReferenceInProgress();
+
+            var workspace = Roslyn.Services.Workspace.LoadSolution(solutionPath);
+            var currentFilePath = Path.Combine(projectCodeDirectory.FullName, parameter.Path.Replace(@"/", @"\"));
+            var solution = workspace.CurrentSolution;
+
+            foreach (var project in solution.Projects)
             {
-                var workspace = Roslyn.Services.Workspace.LoadSolution(solutionPath);
-                var currentFilePath = Path.Combine(projectCodeDirectory.FullName, parameter.Path.Replace(@"/", @"\"));
-                var solution = workspace.CurrentSolution;
-
-                var currentDocument = solution.Projects.SelectMany(project => project.Documents).SingleOrDefault(document => document.FilePath.Equals(currentFilePath, StringComparison.OrdinalIgnoreCase));
-                if (currentDocument == null)
+                foreach (var document in project.Documents)
                 {
-                    return result;
-                }
-
-                var currentFileSemanticModel = currentDocument.GetSemanticModel();
-                if (currentFileSemanticModel == null)
-                {
-                    return result;
-                }
-
-                var searchedWordSyntaxNode = currentFileSemanticModel.SyntaxTree.GetRoot().FindToken(parameter.Position).Parent;
-
-                var symbolInfo = currentFileSemanticModel.GetSymbolInfo(searchedWordSyntaxNode);
-
-                if (symbolInfo.Symbol == null)
-                {
-                    return result;
-                }
-
-                var foundReferences = symbolInfo.Symbol.FindReferences(solution);
-
-                foreach (var reference in foundReferences)
-                {
-                    foreach (var location in reference.Locations)
+                    var documentSemanticModel = document.GetSemanticModel();
+                    var findReferenceSyntaxtWalker = new FindReferenceSyntaxWalker();
+                    CommonSyntaxNode syntaxRoot = null;
+                    if (documentSemanticModel.SyntaxTree.TryGetRoot(out syntaxRoot))
                     {
-                        result.Add(new FindReferenceResult
-                      {
-                          FileName = location.Document.Name,
-                          Path = location.Document.FilePath,
-                          Position = location.Location.GetLineSpan(true).StartLinePosition.Line
-                      });
+                        findReferenceSyntaxtWalker.DoVisit(syntaxRoot, parameter.Text, (foundLocation) =>
+                        {
+                            result.Add(new FindReferenceResult { FileName = document.Name, Path = document.FilePath, Position = foundLocation });
+                        });
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                this.logger.Error(ex, "Error occured while trying to find reference in project {0} for a symbol {1}", parameter.Project, parameter.Text);
-            }
 
+            this.findReferenceProgressListener.OnFindReferenceCompleted(result.Count);
             return result;
         }
 

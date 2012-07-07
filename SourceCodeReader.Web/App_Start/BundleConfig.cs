@@ -41,8 +41,8 @@ namespace SourceCodeReader.Web
         private static void RegisterStyleBundles(BundleCollection bundles)
         {
             bundles.Add(new StyleBundle("~/Content/bootrap")
-               .Include("~/Content/bootstrap*",
-               "~/Content/bootstrap-responsive*"));
+                .Include("~/Content/bootstrap.css",
+                "~/Content/bootstrap-responsive.css"));
 
             bundles.Add(new StyleBundle("~/Content/css")
                 .Include("~/Content/site.css"));

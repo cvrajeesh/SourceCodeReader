@@ -57,7 +57,7 @@ namespace SourceCodeReader.Web.Services
 
         public void OnProjectLoadingError()
         {
-            this.context.Clients.projectStatus(new ProjectClientStatus { Status = ProjectStatus.Error, Message = "Ab error has occured while loading the project." });
+            this.context.Clients.projectStatus(new ProjectClientStatus { Status = ProjectStatus.Error, Message = "An error has occured while loading the project." });
         }
 
 

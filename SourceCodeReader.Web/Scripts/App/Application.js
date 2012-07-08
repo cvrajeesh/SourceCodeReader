@@ -8,12 +8,13 @@ function breadcrumbViewModel(text, url, active) {
 };
 
 // View model which represents a file
-function fileViewModel(name, path, content) {
+function fileViewModel(name, path, content, lineNumber) {
     var self = this;
 
     self.name = name;
     self.path = path;
-    self.content = content;    
+    self.content = content;
+    self.lineNumber = lineNumber;
 };
 
 // View model which represents a project item
@@ -76,7 +77,7 @@ function projectViewModel(name, username, path) {
     };
 
     // Load the project
-    self.openProject = function () {
+    self.openProject = function (lineNumber) {
         var projectUrl = '/api/project/' + self.username() + '/' + self.name() + '/';
         var path = self.path();
         if (path) {
@@ -101,7 +102,7 @@ function projectViewModel(name, username, path) {
                         }
                     }
                 } else if (data.Type == 0) {
-                    self.file(new fileViewModel(data.Name, data.Path, data.Content));                    
+                    self.file(new fileViewModel(data.Name, data.Path, data.Content, lineNumber || 0));                    
                 } else {
                     // Do nothing
                 }
@@ -209,7 +210,11 @@ function appViewModel() {
         );
     };
 
-
+    self.openFile = function (findResult) {
+        if (findResult) {
+            location.hash = '#/open/' + self.project().username() + '/' + self.project().name() + '/' + findResult.Path + '?line=' + findResult.Position;
+        }
+    };
     
     // Routing handlers
     Sammy('#main', function () {
@@ -219,8 +224,8 @@ function appViewModel() {
             var projectVm = new projectViewModel(project, username, path || "");
             self.projectInfo(null);
             self.project(projectVm);
-            projectVm.openProject();
-            self.projectIsActive(true);
+            projectVm.openProject(context.params.line);
+            self.projectIsActive(true);            
         });
 
         // Matches route with format '#/open/{usename}/{projectname}
@@ -242,6 +247,15 @@ function appViewModel() {
 };
 
 $(function () {
+
+    ko.bindingHandlers.scrollTo = {
+        update: function (element, valueAccessor, allBindingsAccessor) {
+            var currentElement = $(element);
+            var value = ko.utils.unwrapObservable(valueAccessor()) * parseInt(currentElement.css('line-height').replace('px', ''));
+            currentElement.parents('.scroll-y').animate({ scrollTop: value });
+        }
+    };
+
 
     var application = new appViewModel();
     ko.applyBindings(application);

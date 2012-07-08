@@ -27,7 +27,7 @@
         <div class="projectcontent stylishscrollbar dockrow scroll-x scroll-y">
             <div class="showprogress" data-bind="visible: inProgress"></div>
             <div data-bind="with: file">
-                <pre data-bind="html: content"  id="sourcecodeviewer">
+                <pre data-bind="html: content, scrollTo: lineNumber"  id="sourcecodeviewer">
                 </pre>
             </div>
             <div data-bind="visible: directories().length > 0 || files().length > 0">
@@ -73,7 +73,7 @@
                     </thead>
                     <tbody>
                     <!-- ko foreach: items -->
-                        <tr>
+                        <tr data-bind="click: $root.openFile">
                             <td data-bind="text: FileName"></td>
                             <td data-bind="text: Path"></td>
                             <td data-bind="text: Position"></td>

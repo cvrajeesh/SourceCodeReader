@@ -32,7 +32,13 @@ namespace SourceCodeReader.Web.Infrastructure
         }
 
         public void Dispose()
-        {          
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public virtual void Dispose(bool disposing)
+        {            
         }
     }
 }

@@ -23,8 +23,8 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
         protected override void VisitToken(CommonSyntaxToken token)
         {
             if (token.GetText() == textToSearch)
-            {
-                symbolFoundDelegate(token.Span.Start);
+            {                
+                symbolFoundDelegate(token.SyntaxTree.GetLineSpan(token.Span, false).StartLinePosition.Line);
             }
            
             base.VisitToken(token);

@@ -88,14 +88,15 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                         {
                             findReferenceSyntaxtWalker.DoVisit(syntaxRoot, parameter.Text, (foundLocation) =>
                             {
-                                result.Add(new FindReferenceResult { FileName = document.Name, Path = document.FilePath, Position = foundLocation });
+                                var documentRelativePath = new Uri(projectCodeDirectory.FullName + Path.DirectorySeparatorChar).MakeRelativeUri(new Uri(document.FilePath)).ToString();
+                                result.Add(new FindReferenceResult { FileName = document.Name, Path = documentRelativePath, Position = foundLocation });
                             });
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    //TODO: Log
+                    this.logger.Error(ex, "An error has occured while loading the project {0}", project.Name);
                 }
             }
 

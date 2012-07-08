@@ -46,18 +46,18 @@ namespace SourceCodeReader.Web.Infrastructure
         {
             get
             {
-                return Path.Combine(ApplicationRoot, "Projects");
+                return ApplicationRoot;
             }
         }
 
-        public string GetProjectPath(string username, string project)
-        {
-            return Path.Combine(ProjectsRoot, username, project);
-        }
+        //public string GetProjectPath(string username, string project)
+        //{
+        //    return Path.Combine(ProjectsRoot, string.Format("{0}-{1}", username, project));
+        //}
 
         public string GetProjectSourceCodePath(string username, string project)
         {
-            return Path.Combine(GetProjectPath(username, project), "Source");
+            return Path.Combine(ProjectsRoot, string.Format("{0}-{1}", username, project));
         }
 
         public string GetProjectPackagePath(string username, string project)

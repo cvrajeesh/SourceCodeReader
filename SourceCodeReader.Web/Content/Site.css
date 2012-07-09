@@ -1,6 +1,4 @@
-﻿@import url(http://fonts.googleapis.com/css?family=Merienda+One&text=Source%20Code%20Reader);
-
-
+﻿
 body {   
     font-size: .85em;
     font-family: "Segoe UI", Verdana, Helvetica, Sans-Serif;
@@ -90,6 +88,7 @@ body {
     right: 0;    	
 	background: url('/images/loader.gif') no-repeat center center;
 }
+
 
 .stylishscrollbar::-webkit-scrollbar{
     width:10px;

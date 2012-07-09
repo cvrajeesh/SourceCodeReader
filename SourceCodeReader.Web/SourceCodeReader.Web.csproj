@@ -208,6 +208,7 @@
     <Compile Include="LanguageServices\DotNet\CSharpCodeNavigationSyntaxWalker.cs" />
     <Compile Include="LanguageServices\DefaultFindReferenceProgressListener.cs" />
     <Compile Include="LanguageServices\DotNet\FindReferenceSyntaxWalker.cs" />
+    <Compile Include="LanguageServices\DotNet\GoToDefinitionSyntaxWalker.cs" />
     <Compile Include="LanguageServices\DotNet\IDotNetSourceCodeNavigationSyntaxWalker.cs" />
     <Compile Include="LanguageServices\IFindReferenceProgress.cs" />
     <Compile Include="LanguageServices\ISyntaxNavigationBuilder.cs" />

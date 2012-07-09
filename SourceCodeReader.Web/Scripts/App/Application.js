@@ -201,11 +201,34 @@ function appViewModel() {
                 project: project.name(),
                 path: currentFilePath,
                 text: text,
-                position: position
+                position: position,
+                kind: kind
             },
             function (result) {
                 self.findResult({ items: result });
                 self.showFindResultWindow(true);
+            }
+        );
+    };
+
+    self.goToDefinition = function (kind, text, position) {
+        var project = self.project();
+        var currentFilePath = project.file().path;
+        var goToDefinitionUrl = '/api/solution/gotodefinition';
+
+        $.post(goToDefinitionUrl,
+            {
+                username: project.username(),
+                project: project.name(),
+                path: currentFilePath,
+                text: text,
+                position: position,
+                kind: kind
+            },
+            function (result) {
+                if (result) {
+                    self.openFile(result);
+                }
             }
         );
     };
@@ -251,6 +274,12 @@ function appViewModel() {
 
 $(function () {
 
+    // This is for getting rid of the UI flickering
+    setTimeout(function () {
+        $('#apploader').toggleClass('hide');
+        $('#main').toggleClass('hide');
+    }, 500);
+
     ko.bindingHandlers.scrollTo = {
         update: function (element, valueAccessor, allBindingsAccessor) {
             var currentElement = $(element);
@@ -259,13 +288,18 @@ $(function () {
         }
     };
 
-
     var application = new appViewModel();
     ko.applyBindings(application);
 
     $.findReferences = function (kind, text, position) {
         if (application) {
             application.findReferences(kind, text, position);
+        }
+    };
+
+    $.goToDefinition = function (kind, text, position) {
+        if (application) {
+            application.goToDefinition(kind, text, position);
         }
     };
 });

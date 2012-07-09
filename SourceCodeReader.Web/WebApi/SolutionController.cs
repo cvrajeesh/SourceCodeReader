@@ -23,6 +23,19 @@ namespace SourceCodeReader.Web.WebApi
             this.findProgressListener = findProgressListener;
         }
 
+        [HttpPost]
+        public Task<FindReferenceResult> GoToDefinition(FindReferenceParameter findReferenceParameter)
+        {
+            return Task.Factory.StartNew<FindReferenceResult>(() =>
+            {
+                if (this.findProgressListener is IClientCallback)
+                {
+                    ((IClientCallback)this.findProgressListener).ProjectConnectionId = ControllerContext.Request.Cookie("ProjectConnectionId");
+                }
+
+                return this.editorService.GoToDefinition(findReferenceParameter, findProgressListener);
+            });
+        }
 
         [HttpPost]
         public Task<List<FindReferenceResult>> FindReferences(FindReferenceParameter findReferenceParameter)

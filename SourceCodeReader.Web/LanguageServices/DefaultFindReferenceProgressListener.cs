@@ -22,6 +22,11 @@ namespace SourceCodeReader.Web.LanguageServices
             this.Caller.findReferenceStatus("Searching in progress...");
         }
 
+        public void OnFindReferenceCompleted()
+        {
+            this.Caller.findReferenceStatus("Search completed.");
+        }
+
         public void OnFindReferenceCompleted(int searchResultCount)
         {
             this.Caller.findReferenceStatus(string.Format("Searching completed with {0} results", searchResultCount));

@@ -17,7 +17,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 {         
                     case TokenKind.ObjectCreation:
                     case TokenKind.MethodCall:
-                        htmlBuilder.Append(string.Format(@"<a href=""javascript:$.findReferences('{0}', '{1}', {2})"">{1}</a>", tk, text, start.GetValueOrDefault()));
+                        htmlBuilder.Append(string.Format(@"<a href=""javascript:$.goToDefinition('{0}', '{1}', {2})"">{1}</a>", tk, text, start.GetValueOrDefault()));
                         break;
                     default:
                         htmlBuilder.Append(System.Web.HttpUtility.HtmlEncode(text));

@@ -12,6 +12,8 @@ namespace SourceCodeReader.Web.LanguageServices
 
         void OnFindReferenceInProgress();
 
+        void OnFindReferenceCompleted();
+
         void OnFindReferenceCompleted(int searchResultCount);
     }
 }

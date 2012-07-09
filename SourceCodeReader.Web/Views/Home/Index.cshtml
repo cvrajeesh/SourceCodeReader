@@ -5,7 +5,8 @@
     </ul>     
 }
 
-<div class="centerstage" id="main">
+ <div class="showprogress" id="apploader"></div>
+<div class="centerstage hide" id="main">
 
     <div data-bind="with: projectInfo" class="loginscreen">    
           <label for="projectUrl">Enter GitHub Project link (e.g. https://github.com/cvrajeesh/SourceCodeReader)</label>  
@@ -93,7 +94,6 @@
 
 @section scripts
 {
-    @Scripts.Render("~/bundles/jquerycookie", "~/bundles/jqueryval", "~/bundles/spa", "~/bundles/signalr")    
      <script type="text/javascript" src="/signalr/hubs"></script>
      @Scripts.Render("~/bundles/applicationjs")
 }

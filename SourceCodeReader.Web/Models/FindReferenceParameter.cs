@@ -16,5 +16,7 @@ namespace SourceCodeReader.Web.Models
         public int Position { get; set; }
 
         public string Text { get; set; }
+
+        public string Kind { get; set; }
     }
 }

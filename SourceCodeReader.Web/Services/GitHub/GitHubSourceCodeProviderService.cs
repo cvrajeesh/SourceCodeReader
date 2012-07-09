@@ -11,7 +11,6 @@ namespace SourceCodeReader.Web.Services.GitHub
 {
     public class GitHubSourceCodeProviderService : ISourceCodeProviderService
     {
-        private ISourceCodeOpeningProgress openingProgress;
         private IProjectDiscoveryService projectDiscoveryService;
         private IApplicationConfigurationProvider applicationConfigurationProvider;
         private IEditorService editorService;
@@ -19,20 +18,18 @@ namespace SourceCodeReader.Web.Services.GitHub
 
         // TODO: Feels like too much dependencies, think about refactoring if needed
         public GitHubSourceCodeProviderService(
-            ISourceCodeOpeningProgress openingProgress, 
             IProjectDiscoveryService projectDiscoveryService,
             IApplicationConfigurationProvider applicationConfigurationProvider,
             IEditorService editorService,
             ILogger logger)
         {
-            this.openingProgress = openingProgress;
             this.projectDiscoveryService = projectDiscoveryService;
             this.applicationConfigurationProvider = applicationConfigurationProvider;
             this.editorService = editorService;
             this.logger = logger;
         }
 
-        public ProjectItem GetContent(string username, string project, string path)
+        public ProjectItem GetContent(string username, string project, string path, ISourceCodeOpeningProgress openingProgressListener)
         {
             var projectSourceCodePath = this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project);
             try
@@ -42,27 +39,27 @@ namespace SourceCodeReader.Web.Services.GitHub
                     string packagePath = this.applicationConfigurationProvider.GetProjectPackagePath(username, project);
                     if (!File.Exists(packagePath))
                     {
-                        this.openingProgress.OnFindProjectStarted();
+                        openingProgressListener.OnFindProjectStarted();
                         var projectSelected = this.projectDiscoveryService.FindProject(username, project);
                         if (projectSelected == null)
                         {
-                            this.openingProgress.OnProjectNotFound();
+                            openingProgressListener.OnProjectNotFound();
                             return null;
                         }
-                        this.openingProgress.OnProjectFound();
+                        openingProgressListener.OnProjectFound();
                         this.applicationConfigurationProvider.ProjectsRoot.EnsureDirectoryExists();
-                        this.openingProgress.OnProjectDownloadStarted();
+                        openingProgressListener.OnProjectDownloadStarted();
                         var downloadStatus = this.DownloadZipBall(packagePath, projectSelected.DownloadPackageUrl);
                         if (!downloadStatus)
                         {
-                            this.openingProgress.OnProjectDownloadFailed();
+                            openingProgressListener.OnProjectDownloadFailed();
                             return null;
                         }
 
-                        this.openingProgress.OnProjectDownloadCompleted();
-                        this.openingProgress.OnProjectPreparing();
+                        openingProgressListener.OnProjectDownloadCompleted();
+                        openingProgressListener.OnProjectPreparing();
                         this.ExtractZipBall(packagePath, projectSourceCodePath);
-                        this.openingProgress.OnProjectLoaded();
+                        openingProgressListener.OnProjectLoaded();
                     }
 
                 }
@@ -71,7 +68,7 @@ namespace SourceCodeReader.Web.Services.GitHub
             }
             catch (Exception ex)
             {
-                this.openingProgress.OnProjectLoadingError();
+                openingProgressListener.OnProjectLoadingError();
                 this.logger.Error(ex, "An error has occured while getting the content for path {0} from project {1}/{2}", path, username, project);
                 return null;
             }

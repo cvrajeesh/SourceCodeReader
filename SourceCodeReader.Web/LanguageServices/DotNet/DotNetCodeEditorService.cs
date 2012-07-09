@@ -15,16 +15,13 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
     public class DotNetCodeEditorService : IEditorService
     {
         private IApplicationConfigurationProvider applicationConfigurationProvider;
-        private IFindReferenceProgress findReferenceProgressListener;
         private ILogger logger;
 
         public DotNetCodeEditorService(
             IApplicationConfigurationProvider applicationConfigurationProvider, 
-            IFindReferenceProgress findReferenceProgressListener,
             ILogger logger)
         {
             this.applicationConfigurationProvider = applicationConfigurationProvider;
-            this.findReferenceProgressListener = findReferenceProgressListener;
             this.logger = logger;
         }
 
@@ -49,9 +46,9 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             }
         }
 
-        public List<FindReferenceResult> FindRefernces(FindReferenceParameter parameter)
+        public List<FindReferenceResult> FindRefernces(FindReferenceParameter parameter, IFindReferenceProgress findReferenceProgressListener)
         {
-            this.findReferenceProgressListener.OnFindReferenceStarted();
+            findReferenceProgressListener.OnFindReferenceStarted();
 
             var projectSourceCodeDirectory = this.applicationConfigurationProvider.GetProjectSourceCodePath(parameter.Username, parameter.Project);
             var projectCodeDirectory = new DirectoryInfo(projectSourceCodeDirectory).GetDirectories()[0];
@@ -59,11 +56,11 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             var result = new List<FindReferenceResult>();
             if (solutionPath == null)
             {
-                this.findReferenceProgressListener.OnFindReferenceCompleted(0);
+                findReferenceProgressListener.OnFindReferenceCompleted(0);
                 return result;
             }
 
-            this.findReferenceProgressListener.OnFindReferenceInProgress();
+            findReferenceProgressListener.OnFindReferenceInProgress();
 
             var workspace = Roslyn.Services.Workspace.LoadSolution(solutionPath);           
             var currentFilePath = Path.Combine(projectCodeDirectory.FullName, parameter.Path.Replace(@"/", @"\"));
@@ -100,7 +97,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 }
             }
 
-            this.findReferenceProgressListener.OnFindReferenceCompleted(result.Count);
+            findReferenceProgressListener.OnFindReferenceCompleted(result.Count);
             return result;
         }
 

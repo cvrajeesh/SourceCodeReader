@@ -8,16 +8,19 @@ using SourceCodeReader.Web.Services;
 using SourceCodeReader.Web.Models;
 using System.Threading.Tasks;
 using SourceCodeReader.Web.LanguageServices;
+using SourceCodeReader.Web.Infrastructure;
 
 namespace SourceCodeReader.Web.WebApi
 {
     public class SolutionController : ApiController
     {
         private IEditorService editorService;
+        private IFindReferenceProgress findProgressListener;
 
-        public SolutionController(IEditorService editorService)
+        public SolutionController(IEditorService editorService, IFindReferenceProgress findProgressListener)
         {
             this.editorService = editorService;
+            this.findProgressListener = findProgressListener;
         }
 
 
@@ -26,7 +29,12 @@ namespace SourceCodeReader.Web.WebApi
         {
             return Task.Factory.StartNew<List<FindReferenceResult>>(() =>
                 {
-                    return this.editorService.FindRefernces(findReferenceParameter);
+                    if (this.findProgressListener is IClientCallback)
+                    {
+                        ((IClientCallback)this.findProgressListener).ProjectConnectionId = ControllerContext.Request.Cookie("ProjectConnectionId");
+                    }
+
+                    return this.editorService.FindRefernces(findReferenceParameter, findProgressListener);
                 });
         }
     }

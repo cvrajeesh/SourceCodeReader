@@ -9,6 +9,6 @@
    
     public interface ISourceCodeProviderService
     {
-        ProjectItem GetContent(string username, string project, string path);        
+        ProjectItem GetContent(string username, string project, string path, ISourceCodeOpeningProgress openingProgressListener);        
     }
 }

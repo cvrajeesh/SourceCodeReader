@@ -10,6 +10,6 @@
     {
         string BuildNavigatableSourceCodeFromFile(string filename);
 
-        List<FindReferenceResult> FindRefernces(FindReferenceParameter parameter);
+        List<FindReferenceResult> FindRefernces(FindReferenceParameter parameter, IFindReferenceProgress findReferenceProgressListener);
     }
 }

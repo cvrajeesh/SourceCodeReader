@@ -20,6 +20,9 @@ namespace SourceCodeReader.Web
                 .Include("~/Scripts/jquery.unobtrusive*",
                         "~/Scripts/jquery.validate*"));
 
+            bundles.Add(new ScriptBundle("~/bundles/jquerycookie")
+                .Include("~/Scripts/jquery.cookie.js"));
+
             bundles.Add(new ScriptBundle("~/bundles/bootstrap")
                 .Include("~/Scripts/bootstrap*"));
 

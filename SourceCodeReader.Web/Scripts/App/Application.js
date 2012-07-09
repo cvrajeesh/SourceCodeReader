@@ -242,7 +242,10 @@ function appViewModel() {
 
     }).run();
 
-    $.connection.hub.start();
+    $.connection.hub.start().done(function () {
+        var projectConnectionId = $.connection.hub.id;
+        $.cookie('ProjectConnectionId', projectConnectionId, {expires: 1});
+    });
     self.isReady(true);
 };
 

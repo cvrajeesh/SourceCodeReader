@@ -6,3 +6,4 @@
 /// <reference path="modernizr-2.0.6-development-only.js" />
 /// <reference path="sammy-latest.min.js" />
 /// <reference path="jsuri-1.1.1.min.js" />
+/// <reference path="jquery.cookie.js" />

@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceCodeReader.Web", "SourceCodeReader.Web\SourceCodeReader.Web.csproj", "{B80F76F9-73B8-472A-8592-3DCC46CBC29D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{2F59898C-53FE-4396-878A-A949E0B59A97}"
@@ -20,14 +20,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23867FD0-DA89-44A7-ABF9-FADF4A2DF541}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{23867FD0-DA89-44A7-ABF9-FADF4A2DF541}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23867FD0-DA89-44A7-ABF9-FADF4A2DF541}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23867FD0-DA89-44A7-ABF9-FADF4A2DF541}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B80F76F9-73B8-472A-8592-3DCC46CBC29D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,7 +5,7 @@ using System.Web;
 
 namespace SourceCodeReader.Web.Models
 {
-    public class FindReferenceResult
+    public class TokenResult
     {
         public string FileName { get; set; }
 

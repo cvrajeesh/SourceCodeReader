@@ -211,7 +211,7 @@ function appViewModel() {
         );
     };
 
-    self.goToDefinition = function (kind, text, position) {
+    self.goToDefinition = function (kind, text, fullyQualifiedName, position) {
         var project = self.project();
         var currentFilePath = project.file().path;
         var goToDefinitionUrl = '/api/solution/gotodefinition';
@@ -222,6 +222,7 @@ function appViewModel() {
                 project: project.name(),
                 path: currentFilePath,
                 text: text,
+                fullyQualifiedName: fullyQualifiedName,
                 position: position,
                 kind: kind
             },
@@ -297,9 +298,9 @@ $(function () {
         }
     };
 
-    $.goToDefinition = function (kind, text, position) {
+    $.goToDefinition = function (kind, text, fullyQualifiedName, position) {
         if (application) {
-            application.goToDefinition(kind, text, position);
+            application.goToDefinition(kind, text, fullyQualifiedName, position);
         }
     };
 });

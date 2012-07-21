@@ -5,7 +5,7 @@ using System.Web;
 
 namespace SourceCodeReader.Web.Models
 {
-    public class FindReferenceParameter
+    public class TokenParameter
     {
         public string Username { get; set; }
 
@@ -18,5 +18,7 @@ namespace SourceCodeReader.Web.Models
         public string Text { get; set; }
 
         public string Kind { get; set; }
+
+        public string FullyQualifiedName { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 
 namespace SourceCodeReader.Web.LanguageServices.DotNet
@@ -18,13 +19,16 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
     /// </summary>
     public class CSharpCodeNavigationSyntaxWalker : SyntaxWalker, IDotNetSourceCodeNavigationSyntaxWalker
     {
-        private Action<TokenKind, string, int?> writeDelegate;
+        private Action<TokenKind, string, string, int?> writeDelegate;
+        private SemanticModel semanticModel;
 
-        public void DoVisit(string sourceCode, Action<TokenKind, string, int?> writeDelegate)
+        public void DoVisit(ISemanticModel semanticModel, Action<TokenKind, string, string, int?> writeDelegate)
         {
-            var syntaxTree = SyntaxTree.ParseCompilationUnit(sourceCode);
+            this.semanticModel = semanticModel as SemanticModel;
+            var syntaxRootNode = this.semanticModel.SyntaxTree.GetRoot();
+
             this.writeDelegate = writeDelegate;
-            Visit(syntaxTree.GetRoot());
+            Visit(syntaxRootNode);
         }
 
         public override void VisitToken(SyntaxToken token)
@@ -34,7 +38,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
             if (token.IsKeyword())
             {
-                writeDelegate(TokenKind.None, token.GetText(), null);
+                writeDelegate(TokenKind.None, token.GetText(), token.GetText(), null);
                 isProcessed = true;
             }
             else
@@ -42,11 +46,20 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 switch (token.Kind)
                 {
                     case SyntaxKind.IdentifierToken:
-                        writeDelegate(this.GetTokenKind(token), token.GetText(), token.Span.Start);
+                        TokenKind tokenKind = this.GetTokenKind(token);
+                        if (tokenKind == TokenKind.None)
+                        {
+                            writeDelegate(TokenKind.None,token.GetText(), token.GetText(), token.Span.Start);
+                        }
+                        else
+                        {
+                            string fullyQualifiedNamed = this.GetFullyQualifiedName(tokenKind, token);
+                            writeDelegate(tokenKind, fullyQualifiedNamed, token.GetText(), token.Span.Start);
+                        }
                         isProcessed = true;
                         break;
                     default:
-                        writeDelegate(TokenKind.None, token.GetText(), null);
+                        writeDelegate(TokenKind.None,token.GetText(), token.GetText(), null);
                         isProcessed = true;
                         break;
                 }
@@ -54,10 +67,43 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
             if (!isProcessed)
             {
-                writeDelegate(TokenKind.None, token.GetText(), null);
+                writeDelegate(TokenKind.None,token.GetText(), token.GetText(), null);
             }
             base.VisitTrailingTrivia(token);
         }
+
+        private string GetFullyQualifiedName(TokenKind tokenKind, SyntaxToken token)
+        {            
+            string result = token.GetText();
+            SymbolInfo symbolInfo;
+
+            switch (tokenKind)
+            {                
+                case TokenKind.MethodCall:
+
+                    var identifierSyntax = token.Parent as IdentifierNameSyntax;
+                    symbolInfo = this.semanticModel.GetSymbolInfo(identifierSyntax);
+                    if (symbolInfo.Symbol != null)
+                    {
+                        result = symbolInfo.Symbol.ToString();
+                    }                    
+                    break;
+                case TokenKind.ObjectCreation:
+
+                    var objectCreationSyntax = token.Parent.Parent as ObjectCreationExpressionSyntax;
+                    symbolInfo = this.semanticModel.GetSymbolInfo(objectCreationSyntax);
+                    if (symbolInfo.Symbol != null)
+                    {
+                        result = symbolInfo.Symbol.ToString();
+                    }
+                    break;
+                case TokenKind.None:                    
+                default:
+                    break;
+            }
+
+            return result;
+        }              
 
         private TokenKind GetTokenKind(SyntaxToken token)
         {
@@ -87,7 +133,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 case SyntaxKind.RegionDirective:
                 case SyntaxKind.EndRegionDirective:
                 default:
-                    writeDelegate(TokenKind.None, trivia.GetFullText(), null);
+                    writeDelegate(TokenKind.None,trivia.GetFullText(),  trivia.GetFullText(), null);
                     break;
             }
             base.VisitTrivia(trivia);

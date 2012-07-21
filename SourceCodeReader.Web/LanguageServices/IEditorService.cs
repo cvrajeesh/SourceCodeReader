@@ -8,10 +8,10 @@
 
     public interface IEditorService
     {
-        string BuildNavigatableSourceCodeFromFile(string filename);
+        string BuildNavigatableSourceCodeFromFile(string username, string project, string path);
 
-        List<FindReferenceResult> FindRefernces(FindReferenceParameter parameter, IFindReferenceProgress findReferenceProgressListener);
+        List<TokenResult> FindRefernces(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener);
 
-        FindReferenceResult GoToDefinition(FindReferenceParameter parameter, IFindReferenceProgress findReferenceProgressListener);
+        TokenResult GoToDefinition(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener);
     }
 }

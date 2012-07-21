@@ -16,84 +16,81 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
     public class DotNetCodeEditorService : IEditorService
     {
         private IApplicationConfigurationProvider applicationConfigurationProvider;
+        private ISourceCodeQueryService sourceCodeQueryService;
         private ILogger logger;
 
         public DotNetCodeEditorService(
             IApplicationConfigurationProvider applicationConfigurationProvider,
+            ISourceCodeQueryService sourceCodeQueryService,
             ILogger logger)
         {
             this.applicationConfigurationProvider = applicationConfigurationProvider;
+            this.sourceCodeQueryService = sourceCodeQueryService;
             this.logger = logger;
         }
 
-        public string BuildNavigatableSourceCodeFromFile(string filename)
+        public string BuildNavigatableSourceCodeFromFile(string username, string project, string path)
         {
-            var sourceCode = File.ReadAllText(filename);
-            var fileExtension = Path.GetExtension(filename).ToLowerInvariant();
-
-            ISyntaxNavigationBuilder syntaxNavigationBuilder = new DotNetSyntaxNavigationBuilder();
+            var projectCodeDirectory = this.GetProjectCodeDirectory(username, project);
+            string fullPath = Path.Combine(projectCodeDirectory.FullName, path.Replace(@"/", @"\"));
+            string fileExtension = Path.GetExtension(fullPath);
+            string sourceCode = File.ReadAllText(fullPath);
 
             if (fileExtension == ".cs")
             {
-                return syntaxNavigationBuilder.GetCodeAsNavigatableHtml(sourceCode, new CSharpCodeNavigationSyntaxWalker());
-            }
-            else if (fileExtension == ".vb")
-            {
-                return syntaxNavigationBuilder.GetCodeAsNavigatableHtml(sourceCode, new VisualBasicCodeNavigationSyntaxWalker());
-            }
-            else
-            {
+                var documentInfo = this.sourceCodeQueryService.GetFileDetails(fullPath);
+                if (documentInfo != null)
+                {
+                    var workspace = Roslyn.Services.Workspace.LoadSolution(documentInfo.SolutionPath);
+                    var selectedDocument = workspace.CurrentSolution.Projects.SelectMany(selectedProject => selectedProject.Documents)
+                        .Where(document => document.FilePath == fullPath)
+                        .SingleOrDefault();
+
+                    if (selectedDocument != null)
+                    {
+                        ISyntaxNavigationBuilder syntaxNavigationBuilder = new DotNetSyntaxNavigationBuilder();
+                        var semanticModel = selectedDocument.GetSemanticModel();
+                        return syntaxNavigationBuilder.GetCodeAsNavigatableHtml(semanticModel, new CSharpCodeNavigationSyntaxWalker());
+                    }
+                }
+
                 return sourceCode;
             }
+          
+            return sourceCode;
         }
 
 
-        public FindReferenceResult GoToDefinition(FindReferenceParameter parameter, IFindReferenceProgress findReferenceProgressListener)
+        public TokenResult GoToDefinition(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener)
         {
-            FindReferenceResult result = null;
-            var goToDefinitionSyntaxWalker = new GoToDefinitionSyntaxWalker();
-            TokenKind searchedTokenKind = (TokenKind)Enum.Parse(typeof(TokenKind), parameter.Kind);
-            TraverseThroughAllTheProjectFiles(parameter, findReferenceProgressListener, (documentName, documentRelativePath, syntaxRoot) =>
-                {
-                    goToDefinitionSyntaxWalker.DoVisit(syntaxRoot, parameter.Text, searchedTokenKind, (foundlocation) =>
-                    {
-                        result = new FindReferenceResult
-                        {
-                            FileName = documentName,
-                            Path = documentRelativePath,
-                            Position = foundlocation
-                        };
-                    });
-                });
-
-            findReferenceProgressListener.OnFindReferenceCompleted();
-
-            return result;
+            return this.sourceCodeQueryService.FindExact(parameter);
         }
 
-        public List<FindReferenceResult> FindRefernces(FindReferenceParameter parameter, IFindReferenceProgress findReferenceProgressListener)
+        public List<TokenResult> FindRefernces(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener)
         {
-            var result = new List<FindReferenceResult>();
+            var result = new List<TokenResult>();
             var findReferenceSyntaxWalker = new FindReferenceSyntaxWalker();
-            TraverseThroughAllTheProjectFiles(parameter, findReferenceProgressListener, (documentName, documentRelativePath, syntaxRoot) =>
+            TraverseThroughAllTheProjectFiles(parameter, findReferenceProgressListener, (documentName, documentRelativePath, semanticModel, syntaxRoot) =>
             {
                 findReferenceSyntaxWalker.DoVisit(syntaxRoot, parameter.Text, (foundlocation) =>
                 {
-                    result.Add(new FindReferenceResult { FileName = documentName, Path = documentRelativePath, Position = foundlocation });
+                    result.Add(new TokenResult { FileName = documentName, Path = documentRelativePath, Position = foundlocation });
                 });
+
+                return false;
             });                               
 
             findReferenceProgressListener.OnFindReferenceCompleted(result.Count);
             return result;
         }
 
-        private void TraverseThroughAllTheProjectFiles(FindReferenceParameter parameter, IFindReferenceProgress findReferenceProgressListener, Action<string, string, CommonSyntaxNode> visitorAction)
+        private void TraverseThroughAllTheProjectFiles(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener, Func< string, string, ISemanticModel, CommonSyntaxNode, bool> visitorAction)
         {
             findReferenceProgressListener.OnFindReferenceStarted();
 
-            var projectSourceCodeDirectory = this.applicationConfigurationProvider.GetProjectSourceCodePath(parameter.Username, parameter.Project);
-            var projectCodeDirectory = new DirectoryInfo(projectSourceCodeDirectory).GetDirectories()[0];
-            var solutionPath = FindSolutionPath(projectCodeDirectory, parameter.Project);
+            var projectCodeDirectory = this.GetProjectCodeDirectory(parameter.Username, parameter.Project);
+           
+            var solutionPath = FindSolutionPath(parameter.Username, parameter.Project);
             if (solutionPath == null)
             {
                 findReferenceProgressListener.OnFindReferenceCompleted(0);
@@ -111,6 +108,8 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
                 try
                 {
+                    bool processingCompleted = false;
+
                     if (!project.HasDocuments)
                     {
                         continue;
@@ -124,8 +123,17 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                         if (documentSemanticModel.SyntaxTree.TryGetRoot(out syntaxRoot))
                         {
                             var documentRelativePath = new Uri(projectCodeDirectory.FullName + Path.DirectorySeparatorChar).MakeRelativeUri(new Uri(document.FilePath)).ToString();
-                            visitorAction(document.Name, documentRelativePath, syntaxRoot);
+                            processingCompleted = visitorAction(document.Name, documentRelativePath,documentSemanticModel, syntaxRoot);
+                            if (processingCompleted)
+                            {
+                                break;
+                            }
                         }
+                    }
+
+                    if (processingCompleted)
+                    {
+                        break;
                     }
                 }
                 catch (Exception ex)
@@ -135,9 +143,12 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             }
         }
 
-        private string FindSolutionPath(DirectoryInfo projectDirectory, string project)
+
+        private string FindSolutionPath(string username, string project)
         {
-            var solutions = projectDirectory.GetFiles("*.sln", SearchOption.AllDirectories);
+            var projectCodeDirectory = this.GetProjectCodeDirectory(username, project);
+            var solutions = projectCodeDirectory.GetFiles("*.sln", SearchOption.AllDirectories);
+
             if (solutions.Length > 0)
             {
                 // Check for a solution with project name
@@ -151,6 +162,12 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             }
 
             return null;
+        }
+
+        private DirectoryInfo GetProjectCodeDirectory(string username, string project)
+        {
+            var projectSourceCodeDirectory = this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project);
+            return new DirectoryInfo(projectSourceCodeDirectory).GetDirectories()[0];
         }
 
     }

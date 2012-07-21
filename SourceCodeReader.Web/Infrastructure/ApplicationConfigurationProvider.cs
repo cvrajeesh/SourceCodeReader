@@ -42,6 +42,14 @@ namespace SourceCodeReader.Web.Infrastructure
             }
         }
 
+        public string SourceCodeIndexPath
+        {
+            get
+            {
+                return Path.Combine(this.ApplicationRoot, "SourceCodeIndex");
+            }
+        }
+
         public string ProjectsRoot
         {
             get

@@ -33,6 +33,16 @@ namespace SourceCodeReader.Web.Infrastructure
             return true;
         }
 
+        public static string CorrectPathToWindowsStyle(this string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return path;
+            }
+
+            return path.Replace(@"/", @"\");
+        }
+
         public static string Cookie(this HttpRequestMessage request, string name)
         {
             string selectedCookieValue = null;

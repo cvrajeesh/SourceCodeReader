@@ -6,6 +6,7 @@ using SourceCodeReader.Web.Infrastructure;
 using SourceCodeReader.Web.LanguageServices;
 using SourceCodeReader.Web.Models;
 using Ninject.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace SourceCodeReader.Web.Services.GitHub
 {
@@ -14,20 +15,24 @@ namespace SourceCodeReader.Web.Services.GitHub
         private IProjectDiscoveryService projectDiscoveryService;
         private IApplicationConfigurationProvider applicationConfigurationProvider;
         private IEditorService editorService;
+        private ISourceCodeIndexingService sourceCodeIndexingService;
         private ILogger logger;
+        private static readonly ConcurrentDictionary<string, object> ProjectDownloadLock = new ConcurrentDictionary<string, object>();
 
-        // TODO: Feels like too much dependencies, think about refactoring if needed
         public GitHubSourceCodeProviderService(
             IProjectDiscoveryService projectDiscoveryService,
             IApplicationConfigurationProvider applicationConfigurationProvider,
             IEditorService editorService,
+            ISourceCodeIndexingService sourceCodeIndexingService,
             ILogger logger)
         {
             this.projectDiscoveryService = projectDiscoveryService;
             this.applicationConfigurationProvider = applicationConfigurationProvider;
             this.editorService = editorService;
+            this.sourceCodeIndexingService = sourceCodeIndexingService;
             this.logger = logger;
         }
+        
 
         public ProjectItem GetContent(string username, string project, string path, ISourceCodeOpeningProgress openingProgressListener)
         {
@@ -36,35 +41,49 @@ namespace SourceCodeReader.Web.Services.GitHub
             {
                 if (!Directory.Exists(projectSourceCodePath))
                 {
-                    string packagePath = this.applicationConfigurationProvider.GetProjectPackagePath(username, project);
-                    if (!File.Exists(packagePath))
+                    string projectIdentifier = string.Format("{0}_{1}", username, project);
+                    object __projectSpecificLock = ProjectDownloadLock.GetOrAdd(projectIdentifier, new object());
+                    lock (__projectSpecificLock)
                     {
-                        openingProgressListener.OnFindProjectStarted();
-                        var projectSelected = this.projectDiscoveryService.FindProject(username, project);
-                        if (projectSelected == null)
+                        if (!Directory.Exists(projectSourceCodePath))
                         {
-                            openingProgressListener.OnProjectNotFound();
-                            return null;
-                        }
-                        openingProgressListener.OnProjectFound();
-                        this.applicationConfigurationProvider.ProjectsRoot.EnsureDirectoryExists();
-                        openingProgressListener.OnProjectDownloadStarted();
-                        var downloadStatus = this.DownloadZipBall(packagePath, projectSelected.DownloadPackageUrl);
-                        if (!downloadStatus)
-                        {
-                            openingProgressListener.OnProjectDownloadFailed();
-                            return null;
-                        }
+                            string packagePath = this.applicationConfigurationProvider.GetProjectPackagePath(username, project);
+                            if (!File.Exists(packagePath))
+                            {
+                                openingProgressListener.OnFindProjectStarted();
+                                var projectSelected = this.projectDiscoveryService.FindProject(username, project);
+                                if (projectSelected == null)
+                                {
+                                    openingProgressListener.OnProjectNotFound();
+                                    return null;
+                                }
+                                openingProgressListener.OnProjectFound();
+                                
+                                openingProgressListener.OnProjectDownloadStarted();
+                                var downloadStatus = this.DownloadZipBall(packagePath, projectSelected.DownloadPackageUrl);
+                                if (!downloadStatus)
+                                {
+                                    openingProgressListener.OnProjectDownloadFailed();
+                                    return null;
+                                }
 
-                        openingProgressListener.OnProjectDownloadCompleted();
-                        openingProgressListener.OnProjectPreparing();
-                        this.ExtractZipBall(packagePath, projectSourceCodePath);
-                        openingProgressListener.OnProjectLoaded();
+                                openingProgressListener.OnProjectDownloadCompleted();
+                            }
+
+                            openingProgressListener.OnProjectPreparing();
+                            this.ExtractZipBall(packagePath, projectSourceCodePath);
+                        }
                     }
 
+                    // Try to remove the created lock object
+                    ProjectDownloadLock.TryRemove(projectIdentifier, out __projectSpecificLock);
                 }
 
-                return GetContentFromPath(projectSourceCodePath, path);
+                openingProgressListener.OnBuildingWorkspace();
+                this.sourceCodeIndexingService.IndexProject(username, project, projectSourceCodePath);
+                openingProgressListener.OnProjectLoaded();
+
+                return GetContentFromPath(username, project, projectSourceCodePath, path);
             }
             catch (Exception ex)
             {
@@ -74,7 +93,7 @@ namespace SourceCodeReader.Web.Services.GitHub
             }
         }
 
-        private ProjectItem GetContentFromPath(string projectSourceCodePath, string path)
+        private ProjectItem GetContentFromPath(string username, string project, string projectSourceCodePath, string path)
         {
             var repositoryDirectory = new DirectoryInfo(projectSourceCodePath);
             DirectoryInfo applicationRoot = repositoryDirectory.GetDirectories()[0];
@@ -102,7 +121,7 @@ namespace SourceCodeReader.Web.Services.GitHub
                         var fileItem = new ProjectItem { Type = ProjectItemType.File };
                         fileItem.Path = path;
                         fileItem.Name = Path.GetFileName(fullPath);
-                        fileItem.Content = this.editorService.BuildNavigatableSourceCodeFromFile(fullPath);
+                        fileItem.Content = this.editorService.BuildNavigatableSourceCodeFromFile(username, project, path);
                         return fileItem;
                     }
                     else

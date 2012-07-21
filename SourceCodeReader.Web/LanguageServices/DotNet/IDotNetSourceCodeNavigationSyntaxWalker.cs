@@ -4,9 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+using Roslyn.Compilers.Common;
 
     public interface IDotNetSourceCodeNavigationSyntaxWalker
     {
-        void DoVisit(string sourceCode, Action<TokenKind, string, int?> writeDelegate);
+        void DoVisit(ISemanticModel semanticModel, Action<TokenKind, string, string, int?> writeDelegate);
     }
 }

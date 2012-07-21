@@ -24,30 +24,33 @@ namespace SourceCodeReader.Web.WebApi
         }
 
         [HttpPost]
-        public Task<FindReferenceResult> GoToDefinition(FindReferenceParameter findReferenceParameter)
+        public Task<TokenResult> GoToDefinition(TokenParameter tokenParameter)
         {
-            return Task.Factory.StartNew<FindReferenceResult>(() =>
+            return Task.Factory.StartNew<TokenResult>(() =>
             {
                 if (this.findProgressListener is IClientCallback)
                 {
                     ((IClientCallback)this.findProgressListener).ProjectConnectionId = ControllerContext.Request.Cookie("ProjectConnectionId");
                 }
 
-                return this.editorService.GoToDefinition(findReferenceParameter, findProgressListener);
+                tokenParameter.Path = tokenParameter.Path.CorrectPathToWindowsStyle();
+
+                return this.editorService.GoToDefinition(tokenParameter, findProgressListener);
             });
         }
 
         [HttpPost]
-        public Task<List<FindReferenceResult>> FindReferences(FindReferenceParameter findReferenceParameter)
+        public Task<List<TokenResult>> FindReferences(TokenParameter tokenParameter)
         {
-            return Task.Factory.StartNew<List<FindReferenceResult>>(() =>
+            return Task.Factory.StartNew<List<TokenResult>>(() =>
                 {
                     if (this.findProgressListener is IClientCallback)
                     {
                         ((IClientCallback)this.findProgressListener).ProjectConnectionId = ControllerContext.Request.Cookie("ProjectConnectionId");
                     }
 
-                    return this.editorService.FindRefernces(findReferenceParameter, findProgressListener);
+                    tokenParameter.Path = tokenParameter.Path.CorrectPathToWindowsStyle();
+                    return this.editorService.FindRefernces(tokenParameter, findProgressListener);
                 });
         }
     }

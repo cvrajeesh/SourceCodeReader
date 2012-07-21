@@ -2,19 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Roslyn.Compilers.Common;
 using Roslyn.Compilers.VisualBasic;
 
 namespace SourceCodeReader.Web.LanguageServices.DotNet
 {
     public class VisualBasicCodeNavigationSyntaxWalker : SyntaxWalker, IDotNetSourceCodeNavigationSyntaxWalker
     {
-        private Action<TokenKind, string, int?> writeDelegate;
+        private Action<TokenKind, string, string, int?> writeDelegate;
+        private SemanticModel semanticModel;
 
-        public void DoVisit(string sourceCode, Action<TokenKind, string, int?> writeDelegate)
+        public void DoVisit(ISemanticModel semanticModel, Action<TokenKind, string, string, int?> writeDelegate)
         {
-            var syntaxTree = SyntaxTree.ParseCompilationUnit(sourceCode);
+            this.semanticModel = semanticModel as SemanticModel;
+            var syntaxTreeRoot = this.semanticModel.SyntaxTree.GetRoot();
             this.writeDelegate = writeDelegate;
-            Visit(syntaxTree.GetRoot());
+            Visit(syntaxTreeRoot);
         }
 
         public override void VisitToken(SyntaxToken token)
@@ -25,18 +28,18 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             switch (token.Kind)
             {
                 case SyntaxKind.IdentifierToken:
-                    writeDelegate(this.GetTokenKind(token), token.GetText(), token.Span.Start);
+                    writeDelegate(this.GetTokenKind(token),token.GetText(), token.GetText(), token.Span.Start);
                     isProcessed = true;
                     break;
                 default:
-                    writeDelegate(TokenKind.None, token.GetText(), null);
+                    writeDelegate(TokenKind.None, token.GetText(), token.GetText(), null);
                     isProcessed = true;
                     break;
             }
 
             if (!isProcessed)
             {
-                writeDelegate(TokenKind.None, token.GetText(), null);
+                writeDelegate(TokenKind.None,token.GetText(),  token.GetText(), null);
             }
             base.VisitTrailingTrivia(token);
         }
@@ -68,7 +71,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 case SyntaxKind.RegionDirective:
                 case SyntaxKind.EndRegionDirective:
                 default:
-                    writeDelegate(TokenKind.None, trivia.GetFullText(), null);
+                    writeDelegate(TokenKind.None,trivia.GetFullText(),  trivia.GetFullText(), null);
                     break;
             }
             base.VisitTrivia(trivia);

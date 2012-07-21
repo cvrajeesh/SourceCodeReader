@@ -18,5 +18,7 @@ namespace SourceCodeReader.Web.Infrastructure
         string GetProjectSourceCodePath(string username, string project);
 
         string ProjectsRoot { get; }
+
+        string SourceCodeIndexPath { get; }
     }
 }

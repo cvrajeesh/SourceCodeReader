@@ -5,6 +5,7 @@ using System.Web;
 using SourceCodeReader.Web.Infrastructure;
 using System.Web.Http;
 using System.Reflection;
+using Ninject;
 
 namespace SourceCodeReader.Web
 {
@@ -17,6 +18,10 @@ namespace SourceCodeReader.Web
             var kernal = new Ninject.StandardKernel();
             kernal.Load(new[] { Assembly.GetExecutingAssembly()});
             GlobalConfiguration.Configuration.DependencyResolver = new NinjectDependencyResolver(kernal);
+
+
+            var applicationConfigurationProvider = kernal.Get<IApplicationConfigurationProvider>();
+            applicationConfigurationProvider.SourceCodeIndexPath.EnsureDirectoryExists();
         }
     }
 }

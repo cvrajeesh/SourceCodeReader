@@ -26,5 +26,7 @@ namespace SourceCodeReader.Web.Services
         void OnProjectPreparing();
 
         void OnProjectLoadingError();
+
+        void OnBuildingWorkspace();
     }
 }

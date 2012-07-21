@@ -28,6 +28,10 @@ namespace SourceCodeReader.Web
             bundles.Add(new ScriptBundle("~/bundles/applicationjs")
               .Include("~/Scripts/App/Application.js"));
 
+            bundles.Add(new ScriptBundle("~/bundles/allmobile")
+                .Include("~/Scripts/jquery-1.7.2.js",
+                "~/Scripts/jquery.mobile-1.1.0.js",
+                "~/Scripts/App/Application.Mobile.js")); 
         
         }
 
@@ -36,7 +40,11 @@ namespace SourceCodeReader.Web
             bundles.Add(new StyleBundle("~/content/all")
             .Include("~/Content/bootstrap.css",
                 "~/Content/bootstrap-responsive.css",
-                "~/Content/site.css"));         
+                "~/Content/site.css"));
+
+            bundles.Add(new StyleBundle("~/content/allmobile")
+               .Include("~/Content/jquery.mobile-1.1.0.css",
+               "~/Content/Site.Mobile.css"));
         }
     }
 }

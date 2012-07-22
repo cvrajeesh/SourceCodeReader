@@ -13,6 +13,6 @@ namespace SourceCodeReader.Web.Infrastructure
 
         string ProjectsRoot { get; }
 
-        string SourceCodeIndexPath { get; }
+        string SourceCodeIndexPath { get; }       
     }
 }

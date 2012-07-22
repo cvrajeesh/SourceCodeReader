@@ -10,29 +10,7 @@ namespace SourceCodeReader.Web.Infrastructure
 {
     public class ApplicationConfigurationProvider : IApplicationConfigurationProvider
     {
-        public string AWSAccessID 
-        { 
-            get
-            {
-                return ConfigurationManager.AppSettings["AWSAccessID"];
-            }
-        }
-
-        public string AWSSecretAccessKey
-        {
-            get
-            {
-                return ConfigurationManager.AppSettings["AWSSecretAccessKey"];
-            }
-        }
-
-        public string AWSBlogBucket
-        {
-            get
-            {
-                return ConfigurationManager.AppSettings["AWSBlogBucket"];
-            }
-        }
+       
 
         public string ApplicationRoot
         {

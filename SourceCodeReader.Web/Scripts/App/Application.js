@@ -211,7 +211,7 @@ function appViewModel() {
         );
     };
 
-    self.goToDefinition = function (kind, text, fullyQualifiedName, position) {
+    self.goToDefinition = function (fullyQualifiedName) {
         var project = self.project();
         var currentFilePath = project.file().path;
         var goToDefinitionUrl = '/api/solution/gotodefinition';
@@ -221,22 +221,22 @@ function appViewModel() {
                 username: project.username(),
                 project: project.name(),
                 path: currentFilePath,
-                text: text,
                 fullyQualifiedName: fullyQualifiedName,
-                position: position,
-                kind: kind
             },
             function (result) {
                 if (result) {
                     self.openFile(result);
+                } else {
+                    self.projectStatus("Couldn't find any implementation in the current solution.");
                 }
             }
         );
     };
 
-    self.openFile = function (findResult) {
-        if (findResult) {
-            location.hash = '#/open/' + self.project().username() + '/' + self.project().name() + '/' + findResult.Path + '?line=' + findResult.Position;
+    self.openFile = function (result) {
+        self.projectStatus('');
+        if (result) {
+            location.hash = '#/open/' + self.project().username() + '/' + self.project().name() + '/' + result.Path + '?line=' + result.Position;
         }
     };
     
@@ -298,9 +298,9 @@ $(function () {
         }
     };
 
-    $.goToDefinition = function (kind, text, fullyQualifiedName, position) {
+    $.goToDefinition = function (fullyQualifiedName) {
         if (application) {
-            application.goToDefinition(kind, text, fullyQualifiedName, position);
+            application.goToDefinition(fullyQualifiedName);
         }
     };
 });

@@ -13,6 +13,8 @@ namespace TestProject
 
         }
 
+        public MyEnum EnumProperty { get; set; }
+
         public void Method1()
         {
             Console.WriteLine("Calling Method1");

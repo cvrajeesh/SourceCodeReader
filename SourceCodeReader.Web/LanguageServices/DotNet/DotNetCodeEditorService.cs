@@ -36,25 +36,32 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             string fileExtension = Path.GetExtension(fullPath);
             string sourceCode = File.ReadAllText(fullPath);
 
-            if (fileExtension == ".cs")
+            try
             {
-                var documentInfo = this.sourceCodeQueryService.GetFileDetails(fullPath);
-                if (documentInfo != null)
+                if (fileExtension == ".cs")
                 {
-                    var workspace = Roslyn.Services.Workspace.LoadSolution(documentInfo.SolutionPath);
-                    var selectedDocument = workspace.CurrentSolution.Projects.SelectMany(selectedProject => selectedProject.Documents)
-                        .Where(document => document.FilePath == fullPath)
-                        .SingleOrDefault();
-
-                    if (selectedDocument != null)
+                    var documentInfo = this.sourceCodeQueryService.GetFileDetails(fullPath);
+                    if (documentInfo != null)
                     {
-                        ISyntaxNavigationBuilder syntaxNavigationBuilder = new DotNetSyntaxNavigationBuilder();
-                        var semanticModel = selectedDocument.GetSemanticModel();
-                        return syntaxNavigationBuilder.GetCodeAsNavigatableHtml(semanticModel, new CSharpCodeNavigationSyntaxWalker());
-                    }
-                }
+                        var workspace = Roslyn.Services.Workspace.LoadSolution(documentInfo.SolutionPath);
+                        var selectedDocument = workspace.CurrentSolution.Projects.SelectMany(selectedProject => selectedProject.Documents)
+                            .Where(document => document.FilePath == fullPath)
+                            .SingleOrDefault();
 
-                return sourceCode;
+                        if (selectedDocument != null)
+                        {
+                            ISyntaxNavigationBuilder syntaxNavigationBuilder = new DotNetSyntaxNavigationBuilder();
+                            var semanticModel = selectedDocument.GetSemanticModel();
+                            return syntaxNavigationBuilder.GetCodeAsNavigatableHtml(semanticModel, new CSharpCodeNavigationSyntaxWalker());
+                        }
+                    }
+
+                    return sourceCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.Error(ex, "Error occured while highlighting sytnax on file {0}", path);
             }
           
             return sourceCode;
@@ -63,7 +70,16 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
         public TokenResult GoToDefinition(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener)
         {
-            return this.sourceCodeQueryService.FindExact(parameter);
+            try
+            {
+                return this.sourceCodeQueryService.FindExact(parameter);
+            }
+            catch (Exception ex)            {
+
+                this.logger.Error(ex, "Error occured while finding definition for {0}", parameter.FullyQualifiedName);
+            }
+
+            return null;
         }
 
         public List<TokenResult> FindRefernces(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener)

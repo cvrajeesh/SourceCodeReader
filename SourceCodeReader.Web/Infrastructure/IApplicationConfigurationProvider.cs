@@ -5,12 +5,6 @@ namespace SourceCodeReader.Web.Infrastructure
     {
         string ApplicationRoot { get; }
 
-        string AWSAccessID { get; }
-
-        string AWSBlogBucket { get; }
-
-        string AWSSecretAccessKey { get; }
-
         //string GetProjectPath(string username, string project);
 
         string GetProjectPackagePath(string username, string project);

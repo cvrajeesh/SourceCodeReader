@@ -8,6 +8,6 @@ using Roslyn.Compilers.Common;
 
     public interface IDotNetSourceCodeNavigationSyntaxWalker
     {
-        void DoVisit(ISemanticModel semanticModel, Action<TokenKind, string, string, int?> writeDelegate);
+        void DoVisit(ISemanticModel semanticModel, Action<TokenKind, string, string> writeDelegate);
     }
 }

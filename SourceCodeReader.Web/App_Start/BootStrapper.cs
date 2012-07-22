@@ -6,6 +6,7 @@ using SourceCodeReader.Web.Infrastructure;
 using System.Web.Http;
 using System.Reflection;
 using Ninject;
+using System.IO;
 
 namespace SourceCodeReader.Web
 {
@@ -22,6 +23,11 @@ namespace SourceCodeReader.Web
 
             var applicationConfigurationProvider = kernal.Get<IApplicationConfigurationProvider>();
             applicationConfigurationProvider.SourceCodeIndexPath.EnsureDirectoryExists();
+            var writerLockPath = Path.Combine(applicationConfigurationProvider.SourceCodeIndexPath, "write.lock");
+            if (File.Exists(writerLockPath))
+            {
+                File.Delete(writerLockPath);
+            }
         }
     }
 }

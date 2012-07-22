@@ -26,10 +26,13 @@ namespace TestProject
     {
         static void Main(string[] args)
         {
+
+            string name = "rajeesh";
+
             ClassWithSomeMethods objectWithSomeMethods = new ClassWithSomeMethods();
             DuplicateClassWithSomeMethods duplicateObjectWithSomeMethods = new DuplicateClassWithSomeMethods();
             objectWithSomeMethods.Method1();
-            objectWithSomeMethods.Method2("Param 1");
+            objectWithSomeMethods.Method2(name);
             duplicateObjectWithSomeMethods.Method1();
         }
     }

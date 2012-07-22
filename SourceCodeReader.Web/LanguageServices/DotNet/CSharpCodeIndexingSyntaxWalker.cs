@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Roslyn.Compilers;
 using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using SourceCodeReader.Web.Models;
@@ -21,10 +22,25 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             return this.declaredItems;
         }
 
+        public override void VisitStructDeclaration(StructDeclarationSyntax node)
+        {
+            var symbol = model.GetDeclaredSymbol(node);
+            VisitDeclaration(symbol, node.Span);
+
+            base.VisitStructDeclaration(node);
+        }
+
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             var symbol = model.GetDeclaredSymbol(node);
-            AddDeclaredItem(symbol, node.Span.Start);
+            VisitDeclaration(symbol, node.Span);
+
+            base.VisitClassDeclaration(node);
+        }
+
+        private void VisitDeclaration(NamedTypeSymbol symbol, TextSpan span)
+        {
+            AddDeclaredItem(symbol, span);
 
             var constructors = symbol.GetConstructors();
             if (constructors.Count() == 1)
@@ -36,14 +52,12 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                     this.declaredItems.Add(new DeclaredItemDocument
                     {
                         Name = symbol.Name,
-                        Location = node.Span.Start,
+                        Location = this.model.SyntaxTree.GetLineSpan(span, false).StartLinePosition.Line,
                         Identifier = string.Format("{0}.{1}()", symbol.ToDisplayString(), symbol.Name),
                         Type = "Constructor"
                     });
                 }
             }
-
-            base.VisitClassDeclaration(node);
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
@@ -52,7 +66,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             this.declaredItems.Add(new DeclaredItemDocument
             {
                 Name = symbol.Name,
-                Location = node.Span.Start,
+                Location = this.model.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line,
                 Identifier = symbol.ToDisplayString(),
                 Type = "Constructor"
             });
@@ -67,7 +81,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 this.declaredItems.Add(new DeclaredItemDocument
                 {
                     Name = symbol.Name,
-                    Location = node.Span.Start,
+                    Location = this.model.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line,
                     Identifier = symbol.ToDisplayString(),
                     Type = "Method"
 
@@ -79,14 +93,14 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
             var symbol = model.GetDeclaredSymbol(node);
-            AddDeclaredItem(symbol, node.Span.Start);
+            AddDeclaredItem(symbol, node);
             base.VisitInterfaceDeclaration(node);
         }
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
             var symbol = model.GetDeclaredSymbol(node);
-            AddDeclaredItem(symbol, node.Span.Start);
+            AddDeclaredItem(symbol, node);
             base.VisitEnumDeclaration(node);
         }
 
@@ -96,7 +110,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             this.declaredItems.Add(new DeclaredItemDocument
             {
                 Name = symbol.Name,
-                Location = node.Span.Start,
+                Location = this.model.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line,
                 Identifier = symbol.ToDisplayString(),
                 Type = "EnumMember"
 
@@ -104,12 +118,17 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             base.VisitEnumMemberDeclaration(node);
         }
 
-        private void AddDeclaredItem(NamedTypeSymbol symbol, int location)
+        private void AddDeclaredItem(NamedTypeSymbol symbol, SyntaxNode node)
+        {
+            AddDeclaredItem(symbol, node.Span);
+        }
+
+        private void AddDeclaredItem(NamedTypeSymbol symbol, TextSpan span)
         {
             this.declaredItems.Add(new DeclaredItemDocument
             {
                 Name = symbol.Name,
-                Location = location,
+                Location = this.model.SyntaxTree.GetLineSpan(span, false).StartLinePosition.Line,
                 Identifier = symbol.ToDisplayString(),
                 Type = symbol.TypeKind.ToString()
             });

@@ -19,7 +19,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
     public class DotNetSourceCodeSearchService : ISourceCodeIndexingService, ISourceCodeQueryService, IDisposable
     {
         private IApplicationConfigurationProvider applicationConfigurationProvider;
-        private static IndexWriter IndexWriter;
+        private static IndexWriter SourceCodeIndexWriter;
         private static readonly Object __indexWriterLock = new Object();
         private readonly Lucene.Net.Store.Directory indexDirectory;
         private readonly Analyzer analyzer;
@@ -33,11 +33,11 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
         private const string ItemProjectName = "ProjectName";
         private const string ItemSolutionPath = "SolutionPath";
 
-        public DotNetSourceCodeSearchService(IApplicationConfigurationProvider applicationConfigurationProvider, Lucene.Net.Store.Directory indexDirectory, Analyzer analyzer)
+        public DotNetSourceCodeSearchService(IApplicationConfigurationProvider applicationConfigurationProvider,  Lucene.Net.Store.Directory indexDirectory,  Analyzer analyzer)
         {
             this.applicationConfigurationProvider = applicationConfigurationProvider;
-            this.indexDirectory = indexDirectory;
             this.analyzer = analyzer;
+            this.indexDirectory = indexDirectory;
         }
 
         private void DoWriterAction(Action<IndexWriter> action)
@@ -46,7 +46,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             {
                 EnsureIndexWriter();
             }
-            action(IndexWriter);
+            action(SourceCodeIndexWriter);
         }
 
         private T DoWriterAction<T>(Func<IndexWriter, T> action)
@@ -55,25 +55,28 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             {
                 EnsureIndexWriter();
             }
-            return action(IndexWriter);
+            return action(SourceCodeIndexWriter);
         }
 
         // Method should only be called from within a lock.
         void EnsureIndexWriter()
         {
-            if (IndexWriter == null)
+            if (SourceCodeIndexWriter == null)
             {
                 if (IndexWriter.IsLocked(this.indexDirectory))
                 {
                     IndexWriter.Unlock(this.indexDirectory);
                 }
-                IndexWriter = new IndexWriter(this.indexDirectory, this.analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
+                SourceCodeIndexWriter = new IndexWriter(this.indexDirectory, this.analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
             }
-        }
+        }     
 
         private IndexSearcher Searcher
         {
-            get { return DoWriterAction(writer => new IndexSearcher(writer.GetReader())); }
+            get
+            {
+                return DoWriterAction(writer => new IndexSearcher(writer.GetReader()));
+            }
         }
 
         public void IndexProject(string username, string projectName, string projectDirectory)
@@ -214,7 +217,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                     Path = relativePath
                 };
             }
-
+      
             return null;
         }
 
@@ -257,7 +260,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                     //Never checking for disposing = true because there are
                     //no managed resources to dispose
 
-                    var writer = IndexWriter;
+                    var writer = SourceCodeIndexWriter;
 
                     if (writer != null)
                     {
@@ -265,10 +268,10 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                         {
                             writer.Close();
                         }
-                        catch (ObjectDisposedException e)
+                        catch (ObjectDisposedException)
                         {
                         }
-                        IndexWriter = null;
+                        SourceCodeIndexWriter = null;
                     }
 
                     var directory = indexDirectory;
@@ -278,7 +281,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                         {
                             directory.Close();
                         }
-                        catch (ObjectDisposedException e)
+                        catch (ObjectDisposedException)
                         {
                         }
                     }
@@ -288,9 +291,6 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             }
 
             GC.SuppressFinalize(this);
-        }
-
-
-     
+        }     
     }
 }

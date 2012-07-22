@@ -11,7 +11,11 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
     {
         None,     
         MethodCall,
-        ObjectCreation
+        PropertyDeclaration,
+        ObjectCreation,
+        Parameter,
+        MemberAccess,
+        VariableDeclaration
     }
 
     /// <summary>
@@ -19,10 +23,10 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
     /// </summary>
     public class CSharpCodeNavigationSyntaxWalker : SyntaxWalker, IDotNetSourceCodeNavigationSyntaxWalker
     {
-        private Action<TokenKind, string, string, int?> writeDelegate;
+        private Action<TokenKind, string, string> writeDelegate;
         private SemanticModel semanticModel;
 
-        public void DoVisit(ISemanticModel semanticModel, Action<TokenKind, string, string, int?> writeDelegate)
+        public void DoVisit(ISemanticModel semanticModel, Action<TokenKind, string, string> writeDelegate)
         {
             this.semanticModel = semanticModel as SemanticModel;
             var syntaxRootNode = this.semanticModel.SyntaxTree.GetRoot();
@@ -38,7 +42,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
             if (token.IsKeyword())
             {
-                writeDelegate(TokenKind.None, token.GetText(), token.GetText(), null);
+                writeDelegate(TokenKind.None, token.GetText(), null);
                 isProcessed = true;
             }
             else
@@ -49,17 +53,24 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                         TokenKind tokenKind = this.GetTokenKind(token);
                         if (tokenKind == TokenKind.None)
                         {
-                            writeDelegate(TokenKind.None,token.GetText(), token.GetText(), token.Span.Start);
+                            writeDelegate(TokenKind.None, token.GetText(), null);
                         }
                         else
                         {
-                            string fullyQualifiedNamed = this.GetFullyQualifiedName(tokenKind, token);
-                            writeDelegate(tokenKind, fullyQualifiedNamed, token.GetText(), token.Span.Start);
+                            try
+                            {
+                                string fullyQualifiedNamed = this.GetFullyQualifiedName(tokenKind, token);
+                                writeDelegate(tokenKind, token.GetText(), fullyQualifiedNamed);
+                            }
+                            catch (Exception)
+                            {
+                                writeDelegate(TokenKind.None, token.GetText(),null);
+                            }
                         }
                         isProcessed = true;
                         break;
                     default:
-                        writeDelegate(TokenKind.None,token.GetText(), token.GetText(), null);
+                        writeDelegate(TokenKind.None,token.GetText(), null);
                         isProcessed = true;
                         break;
                 }
@@ -67,7 +78,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
             if (!isProcessed)
             {
-                writeDelegate(TokenKind.None,token.GetText(), token.GetText(), null);
+                writeDelegate(TokenKind.None,token.GetText(), null);
             }
             base.VisitTrailingTrivia(token);
         }
@@ -80,7 +91,10 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             switch (tokenKind)
             {                
                 case TokenKind.MethodCall:
-
+                case TokenKind.PropertyDeclaration:
+                case TokenKind.Parameter:
+                case TokenKind.VariableDeclaration:
+                case TokenKind.MemberAccess:
                     var identifierSyntax = token.Parent as IdentifierNameSyntax;
                     symbolInfo = this.semanticModel.GetSymbolInfo(identifierSyntax);
                     if (symbolInfo.Symbol != null)
@@ -107,18 +121,84 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
         private TokenKind GetTokenKind(SyntaxToken token)
         {
-            // Customer customer = new Customer();
-            if (token.Parent.Parent.Kind == SyntaxKind.ObjectCreationExpression)
+            // customer = new Customer();
+            if (IsObjectCreationExpression(token))
+            {
                 return TokenKind.ObjectCreation;
+            }
+
+            // Customer customer;
+            if (IsVariableDeclartionExpression(token))
+            {
+                return TokenKind.VariableDeclaration;
+            }
 
             // string result = customer.GetFulleName();
-            if ((token.Parent.Parent.Kind == SyntaxKind.MemberAccessExpression
-                && token.Parent.Parent.Parent.Kind == SyntaxKind.InvocationExpression
-                && token.GetPreviousToken().Kind == SyntaxKind.DotToken) ||
-            (token.Parent.Parent.Kind == SyntaxKind.InvocationExpression))
+            if (IsMethodCallExpression(token))
+            {
                 return TokenKind.MethodCall;
+            }
+
+            // public ITest Test { get; set; }
+            if (IsPropertyDeclarationExpression(token))
+            {
+                return TokenKind.PropertyDeclaration;
+            }
+
+            // public void Method(ITest test)
+            if (IsMethodParameterExpression(token))
+            {
+                return TokenKind.Parameter;
+            }
+
+            //// customer.Name
+            //if (IsMemberAccessExpression(token))
+            //{
+            //    return TokenKind.MemberAccess;
+            //}
 
             return TokenKind.None;
+        }
+
+        private static bool IsVariableDeclartionExpression(SyntaxToken token)
+        {
+            return token.Kind == SyntaxKind.IdentifierToken
+                && token.Parent.Kind == SyntaxKind.IdentifierName
+                && token.Parent.Parent.Kind == SyntaxKind.VariableDeclaration;
+
+        }
+
+        private static bool IsMemberAccessExpression(SyntaxToken token)
+        {
+            return token.Kind == SyntaxKind.IdentifierToken
+              && token.Parent.Kind == SyntaxKind.IdentifierName
+              && token.Parent.Parent.Kind == SyntaxKind.MemberAccessExpression;
+        }
+
+        private static bool IsMethodParameterExpression(SyntaxToken token)
+        {
+            return token.Kind == SyntaxKind.IdentifierToken
+                            && token.Parent.Kind != SyntaxKind.PredefinedType
+                            && token.Parent.Parent.Kind == SyntaxKind.Parameter;
+        }
+
+        private static bool IsPropertyDeclarationExpression(SyntaxToken token)
+        {
+            return token.Kind == SyntaxKind.IdentifierToken
+                            && token.Parent.Parent.Kind == SyntaxKind.PropertyDeclaration;
+        }
+
+        private static bool IsMethodCallExpression(SyntaxToken token)
+        {
+            return (token.Parent.Parent.Kind == SyntaxKind.MemberAccessExpression
+                            && token.Parent.Parent.Parent.Kind == SyntaxKind.InvocationExpression
+                            && token.GetPreviousToken().Kind == SyntaxKind.DotToken) ||
+                        (token.Parent.Parent.Kind == SyntaxKind.InvocationExpression);
+        }
+
+        private static bool IsObjectCreationExpression(SyntaxToken token)
+        {
+            return token.Parent.Parent.Kind == SyntaxKind.ObjectCreationExpression;
         }
 
         // Handle SyntaxTrivia
@@ -133,7 +213,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 case SyntaxKind.RegionDirective:
                 case SyntaxKind.EndRegionDirective:
                 default:
-                    writeDelegate(TokenKind.None,trivia.GetFullText(),  trivia.GetFullText(), null);
+                    writeDelegate(TokenKind.None,trivia.GetFullText(), null);
                     break;
             }
             base.VisitTrivia(trivia);

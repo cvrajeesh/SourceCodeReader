@@ -64,7 +64,7 @@ namespace SourceCodeReader.Web.Services
 
         public void OnBuildingWorkspace()
         {
-            this.Caller.projectStatus(new ProjectClientStatus { Status = ProjectStatus.InProgress, Message = "Loding the workspace" });
+            this.Caller.projectStatus(new ProjectClientStatus { Status = ProjectStatus.InProgress, Message = "Loading the workspace" });
         }
     }
 }

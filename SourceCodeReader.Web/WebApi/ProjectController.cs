@@ -22,6 +22,7 @@ namespace SourceCodeReader.Web.WebApi
             this.openingProgressListener = openingProgressListener;
         }
 
+        [WebApiOutputCache(120, 60)]
         public Task<ProjectItem> Get(string username, string project, string path)
         {
             return Task.Factory.StartNew<ProjectItem>(() =>

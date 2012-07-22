@@ -28,9 +28,13 @@ namespace SourceCodeReader.Web.Infrastructure
             Bind<IProjectDiscoveryService>().To<GitHubProjectDiscoveryService>();
             Bind<ISourceCodeOpeningProgress>().To<DefaultSourceCodeOpeningProgressListener>();
             Bind<ISourceCodeProviderService>().To<GitHubSourceCodeProviderService>();
-            Bind<Lucene.Net.Store.Directory>().ToMethod(context =>
-                Lucene.Net.Store.FSDirectory.Open(new DirectoryInfo(context.Kernel.Get<IApplicationConfigurationProvider>().SourceCodeIndexPath)));
-            Bind<Lucene.Net.Analysis.Analyzer>().To<Lucene.Net.Analysis.Standard.StandardAnalyzer>().WithConstructorArgument("matchVersion", Lucene.Net.Util.Version.LUCENE_29);
+            Bind<Lucene.Net.Store.Directory>()
+                .ToMethod(context => Lucene.Net.Store.FSDirectory.Open(new DirectoryInfo(context.Kernel.Get<IApplicationConfigurationProvider>().SourceCodeIndexPath)))
+                .InSingletonScope();
+            Bind<Lucene.Net.Analysis.Analyzer>()                
+                .To<Lucene.Net.Analysis.Standard.StandardAnalyzer>()
+                .InSingletonScope()
+                .WithConstructorArgument("matchVersion", Lucene.Net.Util.Version.LUCENE_29);
         }
     }
 }

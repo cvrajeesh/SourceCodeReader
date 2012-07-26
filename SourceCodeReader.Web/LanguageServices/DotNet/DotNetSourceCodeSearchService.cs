@@ -10,6 +10,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
+using Ninject.Extensions.Logging;
 using Roslyn.Services;
 using SourceCodeReader.Web.Infrastructure;
 using SourceCodeReader.Web.Models;
@@ -19,6 +20,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
     public class DotNetSourceCodeSearchService : ISourceCodeIndexingService, ISourceCodeQueryService, IDisposable
     {
         private IApplicationConfigurationProvider applicationConfigurationProvider;
+        private ILogger logger;
         private static IndexWriter SourceCodeIndexWriter;
         private static readonly Object __indexWriterLock = new Object();
         private readonly Lucene.Net.Store.Directory indexDirectory;
@@ -33,11 +35,15 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
         private const string ItemProjectName = "ProjectName";
         private const string ItemSolutionPath = "SolutionPath";
 
-        public DotNetSourceCodeSearchService(IApplicationConfigurationProvider applicationConfigurationProvider,  Lucene.Net.Store.Directory indexDirectory,  Analyzer analyzer)
+        public DotNetSourceCodeSearchService(IApplicationConfigurationProvider applicationConfigurationProvider,  
+            Lucene.Net.Store.Directory indexDirectory,  
+            Analyzer analyzer,
+            ILogger logger)
         {
             this.applicationConfigurationProvider = applicationConfigurationProvider;
             this.analyzer = analyzer;
             this.indexDirectory = indexDirectory;
+            this.logger = logger;
         }
 
         private void DoWriterAction(Action<IndexWriter> action)
@@ -121,9 +127,9 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                     {
                         DoWriterAction(writer => writer.AddDocument(document));
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // Log Indexing error
+                        logger.Error(ex, "An error has occured while indexing item {0}", declaredItem.Identifier);
                     }
                 }
 
@@ -166,9 +172,9 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                                     declaredItemDocuments.AddRange(declaredItemsInDocument);
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
-                                //Swallow any exception
+                                logger.Error(ex, "An error has occured while opening project {0}", project.FilePath);
                             }
                         }
 

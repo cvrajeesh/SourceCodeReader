@@ -44,9 +44,28 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                     if (documentInfo != null)
                     {
                         var workspace = Roslyn.Services.Workspace.LoadSolution(documentInfo.SolutionPath);
-                        var selectedDocument = workspace.CurrentSolution.Projects.SelectMany(selectedProject => selectedProject.Documents)
-                            .Where(document => document.FilePath == fullPath)
-                            .SingleOrDefault();
+                        var solution = workspace.CurrentSolution;
+                        IDocument selectedDocument = null;
+                        foreach (var projectItem in solution.Projects)
+                        {
+                            try
+                            {
+                                if (!projectItem.HasDocuments)
+                                {
+                                    continue;
+                                }
+
+                                selectedDocument = projectItem.Documents.SingleOrDefault(document => document.FilePath == fullPath);
+                                if (selectedDocument != null)
+                                {
+                                    break;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                this.logger.Error(ex, "An error has occured while loading the project {0}", projectItem.Name);
+                            }
+                        }
 
                         if (selectedDocument != null)
                         {

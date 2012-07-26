@@ -8,15 +8,36 @@
  <div class="showprogress" id="apploader"></div>
 <div class="centerstage hide" id="main">
 
-    <div data-bind="with: projectInfo" class="loginscreen">    
-          <label for="projectUrl">Enter GitHub Project link (e.g. https://github.com/cvrajeesh/SourceCodeReader)</label>  
-          <input type="text" name="projectUrl" data-bind="value: url, valueUpdate: 'afterkeydown'" class="input-large" />
-          <span data-bind="visible: hasError">Please enter valid url</span>
-          <div> <button type="submit" class="btn btn-large" data-bind="click: open, css: { disabled: disableOpening }, attr: {disabled: disableOpening}">Open project</button></div>
+    <div data-bind="with: projectInfo">    
+          <div  class="loginscreen">
+              <label for="projectUrl">Enter GitHub Project Url (e.g. <a href="/#/open/cvrajeesh/SourceCodeReader">https://github.com/cvrajeesh/SourceCodeReader</a>)</label>  
+              <input type="text" name="projectUrl" data-bind="value: url, valueUpdate: 'afterkeydown'" class="input-large" />
+              <span data-bind="visible: hasError">Please enter valid url</span>
+              <div> <button type="submit" class="btn btn-large" data-bind="click: open, css: { disabled: disableOpening }, attr: {disabled: disableOpening}">Open project</button></div>
+             <br />
+              <p>
+                  <span class="badge badge-warning">!</span> <strong>Issues</strong>                  
+              </p>
+              <ul>
+                <li>Supports only C# projects</li>
+                <li>Commits on GitHub after opening the projects is not synchronized</li>                  
+              </ul>
+
+              <p>
+                  <span class="badge badge-success">!</span> <strong>Roadmap</strong>                  
+              </p>
+              <ul>
+                  <li>Support for other programming languages</li>
+                  <li>Better syntax higlighting</li>
+                  <li>Support other code hostings services</li>
+              </ul>
+        </div>
+         
+
     </div>
     <div data-bind="with: project, visible: isReady">
         <div class="projectheader dockrow ">
-            <h3><span data-bind="text: username"></span>/<span data-bind="text: name"></span></h3>     
+            <h3><span data-bind="text: username"></span>/<span data-bind="text: name"></span> <span class="label label-important" data-bind="text: versionInfo"></span></h3>     
             <ul class="breadcrumb"  data-bind="foreach: breadcrumbs">
               <li data-bind="visible: active">
                 <a data-bind="text: text, attr: {href: url}"></a> <span class="divider">/</span>

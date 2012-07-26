@@ -36,6 +36,7 @@ function projectViewModel(name, username, path) {
     self.files = ko.observableArray();
     self.file = ko.observable();
     self.inProgress = ko.observable(true);
+    self.versionInfo = ko.observable();
 
     // build the url from the path provided
     self.buildUrl = function (path) {
@@ -89,6 +90,7 @@ function projectViewModel(name, username, path) {
         }
         $.get(projectUrl, function (data) {
             if (data) {
+                self.versionInfo('Downloaded on ' + data.DownloadedDate);
                 if (data.Type == 1) {
 
                     for (var i = 0; i < data.Items.length; i++) {

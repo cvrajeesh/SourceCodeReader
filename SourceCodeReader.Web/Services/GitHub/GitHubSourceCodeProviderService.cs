@@ -83,7 +83,9 @@ namespace SourceCodeReader.Web.Services.GitHub
                 this.sourceCodeIndexingService.IndexProject(username, project, projectSourceCodePath);
                 openingProgressListener.OnProjectLoaded();
 
-                return GetContentFromPath(username, project, projectSourceCodePath, path);
+                var projectItem = GetContentFromPath(username, project, projectSourceCodePath, path);
+                projectItem.DownloadedDate = Directory.GetCreationTimeUtc(projectSourceCodePath).ToString("dd MMM yyyy hh:mm:ss UTC");
+                return projectItem;
             }
             catch (Exception ex)
             {

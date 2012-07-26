@@ -28,5 +28,7 @@ namespace SourceCodeReader.Web.Models
         public List<ProjectItem> Items { get; set; }
 
         public ProjectItemType Type { get; set; }
+
+        public string DownloadedDate { get; set; }
     }
 }

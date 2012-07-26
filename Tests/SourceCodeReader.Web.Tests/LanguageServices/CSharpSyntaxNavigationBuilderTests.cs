@@ -6,8 +6,8 @@ namespace SourceCodeReader.Web.Tests.LanguageServices
     using System.Linq;
     using System.Text;
     using NUnit.Framework;
-using SourceCodeReader.Web.LanguageServices;
-using System.Collections;
+    using SourceCodeReader.Web.LanguageServices;
+    using System.Collections;
     using SourceCodeReader.Web.LanguageServices.DotNet;
 
     [TestFixture]

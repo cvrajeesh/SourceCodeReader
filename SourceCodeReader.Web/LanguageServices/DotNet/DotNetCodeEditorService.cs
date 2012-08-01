@@ -211,11 +211,11 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
         {
             var projectDirectory = this.GetProjectCodeDirectory(username, project);
             var projectFiles = projectDirectory.GetFiles("*.csproj", SearchOption.AllDirectories);
-            var msBuildExteionpath32 = Path.Combine(this.applicationConfigurationProvider.ApplicationRoot, "ExternalDependencies", "MSBuild");
+            var msBuildExteionpath32 = Path.Combine(this.applicationConfigurationProvider.ApplicationRoot, "TargetFiles", "MSBuild-MS-VS");
             foreach (var projectFile in projectFiles)
             {
                 var projectFileContent = File.ReadAllText(projectFile.FullName);
-                projectFileContent = projectFileContent.Replace("$(MSBuildExtensionsPath32)", msBuildExteionpath32);
+                projectFileContent = projectFileContent.Replace(@"$(MSBuildExtensionsPath32)\Microsoft\VisualStudio", msBuildExteionpath32);
                 File.WriteAllText(projectFile.FullName, projectFileContent);
             }
 

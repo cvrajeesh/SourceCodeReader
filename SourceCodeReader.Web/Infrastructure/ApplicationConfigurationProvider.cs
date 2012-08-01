@@ -10,13 +10,19 @@ namespace SourceCodeReader.Web.Infrastructure
 {
     public class ApplicationConfigurationProvider : IApplicationConfigurationProvider
     {
-       
-
         public string ApplicationRoot
         {
             get
             {
-                return Path.Combine(HostingEnvironment.ApplicationPhysicalPath, "App_Data");               
+                return HostingEnvironment.ApplicationPhysicalPath;
+            }
+        }
+
+        public string ApplicationDataRoot
+        {
+            get
+            {
+                return Path.Combine(this.ApplicationRoot, "App_Data");               
             }
         }
 
@@ -24,7 +30,7 @@ namespace SourceCodeReader.Web.Infrastructure
         {
             get
             {
-                return Path.Combine(this.ApplicationRoot, "SourceCodeIndex");
+                return Path.Combine(this.ApplicationDataRoot, "SourceCodeIndex");
             }
         }
 
@@ -32,7 +38,7 @@ namespace SourceCodeReader.Web.Infrastructure
         {
             get
             {
-                return ApplicationRoot;
+                return ApplicationDataRoot;
             }
         }
 

@@ -5,6 +5,8 @@ namespace SourceCodeReader.Web.Infrastructure
     {
         string ApplicationRoot { get; }
 
+        string ApplicationDataRoot { get; }
+
         //string GetProjectPath(string username, string project);
 
         string GetProjectPackagePath(string username, string project);

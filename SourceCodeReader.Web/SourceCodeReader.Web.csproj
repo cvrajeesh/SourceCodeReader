@@ -269,6 +269,8 @@
     <Content Include="Content\jquery.mobile.theme-1.1.0.css" />
     <Content Include="Content\jquery.mobile.theme-1.1.0.min.css" />
     <Content Include="Content\Site.Mobile.css" />
+    <Content Include="ExternalDependencies\MSBuild\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.Build.Tasks.Dll" />
+    <Content Include="ExternalDependencies\MSBuild\Microsoft\VisualStudio\v11.0\WebApplications\Microsoft.WebApplication.Build.Tasks.Dll" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Images\loader.gif" />
@@ -340,6 +342,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Scripts\App\Application.Mobile.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ExternalDependencies\MSBuild\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ExternalDependencies\MSBuild\Microsoft\VisualStudio\v11.0\WebApplications\Microsoft.WebApplication.targets" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

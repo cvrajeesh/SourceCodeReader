@@ -9,7 +9,7 @@ namespace SourceCodeReader.Web.Models
     {
         public string Name { get; set; }
 
-        public string ProjectName { get; set; }
+        public string ProjectPath { get; set; }
 
         public string SolutionPath { get; set; }
     }

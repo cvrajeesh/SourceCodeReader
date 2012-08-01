@@ -32,7 +32,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
         private const string ItemPath = "Path";
         private const string ItemLocation = "Location";
         private const string ItemProjectIdentifier = "ProjectIdentifier";
-        private const string ItemProjectName = "ProjectName";
+        private const string ItemProjectPath = "ProjectPath";
         private const string ItemSolutionPath = "SolutionPath";
 
         public DotNetSourceCodeSearchService(IApplicationConfigurationProvider applicationConfigurationProvider,  
@@ -87,8 +87,9 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
         public void IndexProject(string username, string projectName, string projectDirectory)
         {
+            var projectRoot = new DirectoryInfo(projectDirectory).GetDirectories()[0];
             string projectIdentifier = string.Format("{0}_{1}", username, projectName).ToLower();
-            string indexCreatedStatusCheckFilePath = Path.Combine(this.applicationConfigurationProvider.ApplicationRoot, string.Format("{0}.status", projectIdentifier));
+            string indexCreatedStatusCheckFilePath = Path.Combine(this.applicationConfigurationProvider.ApplicationDataRoot, string.Format("{0}.status", projectIdentifier));
 
             // Indexing is already done
             if (File.Exists(indexCreatedStatusCheckFilePath))
@@ -104,10 +105,10 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 if (File.Exists(indexCreatedStatusCheckFilePath))
                 {
                     return;
-                }               
+                }
 
-                var solutionsInTheProject = new DirectoryInfo(projectDirectory).GetFiles("*.sln", SearchOption.AllDirectories).Select(fileInfo => fileInfo.FullName);
-                var declaredItemsToIndex = BuildDocumentsForIndexing(solutionsInTheProject);
+                var solutionsInTheProject = projectRoot.GetFiles("*.sln", SearchOption.AllDirectories).Select(fileInfo => fileInfo.FullName);
+                var declaredItemsToIndex = BuildDocumentsForIndexing(projectRoot, solutionsInTheProject);
 
                 // Delete everthing in the index first
                 var deleteQuery = new TermQuery(new Term(ItemProjectIdentifier, projectIdentifier));
@@ -121,7 +122,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                     document.Add(new Field(ItemPath, declaredItem.Path, Field.Store.YES, Field.Index.NOT_ANALYZED));
                     document.Add(new Field(ItemLocation, declaredItem.Location.ToString(), Field.Store.YES, Field.Index.NO));
                     document.Add(new Field(ItemProjectIdentifier, projectIdentifier, Field.Store.YES, Field.Index.NOT_ANALYZED));
-                    document.Add(new Field(ItemProjectName, declaredItem.ProjectName, Field.Store.YES, Field.Index.NO));
+                    document.Add(new Field(ItemProjectPath, declaredItem.ProjectPath, Field.Store.YES, Field.Index.NO));
                     document.Add(new Field(ItemSolutionPath, declaredItem.SolutionPath, Field.Store.YES, Field.Index.NO));
                     try
                     {
@@ -141,7 +142,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             ProjectSpecificLock.TryRemove(projectIdentifier, out __projectSpecificLockObject);
         }     
 
-        private IList<DeclaredItemDocument> BuildDocumentsForIndexing(IEnumerable<string> solutionsInTheProject)
+        private IList<DeclaredItemDocument> BuildDocumentsForIndexing(DirectoryInfo projectRoot, IEnumerable<string> solutionsInTheProject)
         {
             var lockObject = new Object();
             var declaredItems = new List<DeclaredItemDocument>();
@@ -163,10 +164,10 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                                     var declaredItemsInDocument = csharpCodeIndexingSyntaxWalker.DoVisit(semanticModel, syntaxRoot);
                                     // Update the remaining properties
                                     declaredItemsInDocument.Select(item => 
-                                    { 
-                                        item.Path = document.FilePath; 
-                                        item.ProjectName = document.Project.Name;
-                                        item.SolutionPath = document.Project.Solution.FilePath;
+                                    {
+                                        item.Path = projectRoot.MakeRelativePath(document.FilePath); 
+                                        item.ProjectPath = projectRoot.MakeRelativePath(document.Project.FilePath);
+                                        item.SolutionPath = projectRoot.MakeRelativePath(document.Project.Solution.FilePath);
                                         return item; 
                                     }).ToList();
                                     declaredItemDocuments.AddRange(declaredItemsInDocument);
@@ -195,6 +196,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             return declaredItems;
         }
 
+
         public TokenResult FindExact(TokenParameter parameter)
         {
             IndexSearcher indexSearcher = Searcher;
@@ -215,12 +217,12 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 int location = Int32.Parse(document.Get(ItemLocation));
 
                 var projectCodeDirectory = this.GetProjectCodeDirectory(parameter.Username, parameter.Project);
-                string relativePath = new Uri(projectCodeDirectory.FullName + Path.DirectorySeparatorChar).MakeRelativeUri(new Uri(filePath)).ToString();
+                //string relativePath = filePath //projectCodeDirectory.MakeRelativePath(filePath);
                 return new Models.TokenResult
                 {
                     FileName = Path.GetFileName(filePath),
                     Position = location,
-                    Path = relativePath
+                    Path = filePath
                 };
             }
       
@@ -244,7 +246,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 return new Models.DocumentInfo
                 {
                     Name = Path.GetFileName(document.Get(ItemPath)),
-                    ProjectName = document.Get(ItemProjectName),
+                    ProjectPath = document.Get(ItemProjectPath),
                     SolutionPath = document.Get(ItemSolutionPath)
                 };
             }

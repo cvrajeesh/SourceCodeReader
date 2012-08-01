@@ -8,6 +8,8 @@
 
     public interface IEditorService
     {
+        void RewriteExternalDependencies(string username, string project);
+
         string BuildNavigatableSourceCodeFromFile(string username, string project, string path);
 
         List<TokenResult> FindRefernces(TokenParameter parameter, IFindReferenceProgress findReferenceProgressListener);

@@ -72,6 +72,8 @@ namespace SourceCodeReader.Web.Services.GitHub
 
                             openingProgressListener.OnProjectPreparing();
                             this.ExtractZipBall(packagePath, projectSourceCodePath);
+
+                            this.editorService.RewriteExternalDependencies(username, project);
                         }
                     }
 
@@ -79,7 +81,7 @@ namespace SourceCodeReader.Web.Services.GitHub
                     ProjectDownloadLock.TryRemove(projectIdentifier, out __projectSpecificLock);
                 }
 
-                openingProgressListener.OnBuildingWorkspace();
+                openingProgressListener.OnBuildingWorkspace();                
                 this.sourceCodeIndexingService.IndexProject(username, project, projectSourceCodePath);
                 openingProgressListener.OnProjectLoaded();
 

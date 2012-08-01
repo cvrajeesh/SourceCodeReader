@@ -33,6 +33,11 @@ namespace SourceCodeReader.Web.Infrastructure
             return true;
         }
 
+        public static string MakeRelativePath(this DirectoryInfo rootDirectory, string currentPath)
+        {
+            return new Uri(rootDirectory.FullName + Path.DirectorySeparatorChar).MakeRelativeUri(new Uri(currentPath)).ToString();
+        }
+
         public static string CorrectPathToWindowsStyle(this string path)
         {
             if (string.IsNullOrEmpty(path))

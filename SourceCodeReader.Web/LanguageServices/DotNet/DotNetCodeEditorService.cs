@@ -35,21 +35,22 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             string fullPath = Path.Combine(projectCodeDirectory.FullName, path.Replace(@"/", @"\"));
             string fileExtension = Path.GetExtension(fullPath);
             string sourceCode = File.ReadAllText(fullPath);
-
+            
             try
             {
                 if (fileExtension == ".cs")
                 {
-                    var documentInfo = this.sourceCodeQueryService.GetFileDetails(fullPath);
+                    var documentInfo = this.sourceCodeQueryService.GetFileDetails(projectCodeDirectory.MakeRelativePath(fullPath));
                     if (documentInfo != null)
                     {
-                        var workspace = Roslyn.Services.Workspace.LoadSolution(documentInfo.SolutionPath);
+                        var workspace = Roslyn.Services.Workspace.LoadSolution(Path.Combine(projectCodeDirectory.FullName, documentInfo.SolutionPath));
+                            //.LoadStandAloneProject(Path.Combine(projectCodeDirectory.FullName, documentInfo.ProjectPath));  // 
                         var solution = workspace.CurrentSolution;
                         IDocument selectedDocument = null;
                         foreach (var projectItem in solution.Projects)
                         {
                             try
-                            {
+                            {                               
                                 if (!projectItem.HasDocuments)
                                 {
                                     continue;
@@ -205,5 +206,19 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             return new DirectoryInfo(projectSourceCodeDirectory).GetDirectories()[0];
         }
 
+
+        public void RewriteExternalDependencies(string username, string project)
+        {
+            var projectDirectory = this.GetProjectCodeDirectory(username, project);
+            var projectFiles = projectDirectory.GetFiles("*.csproj", SearchOption.AllDirectories);
+            var msBuildExteionpath32 = Path.Combine(this.applicationConfigurationProvider.ApplicationRoot, "ExternalDependencies", "MSBuild");
+            foreach (var projectFile in projectFiles)
+            {
+                var projectFileContent = File.ReadAllText(projectFile.FullName);
+                projectFileContent = projectFileContent.Replace("$(MSBuildExtensionsPath32)", msBuildExteionpath32);
+                File.WriteAllText(projectFile.FullName, projectFileContent);
+            }
+
+        }
     }
 }

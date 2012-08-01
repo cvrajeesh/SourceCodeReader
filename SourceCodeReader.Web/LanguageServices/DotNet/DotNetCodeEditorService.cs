@@ -83,7 +83,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 this.logger.Error(ex, "Error occured while highlighting sytnax on file {0}", path);
             }
           
-            return sourceCode;
+            return HttpUtility.HtmlEncode(sourceCode);
         }
 
 

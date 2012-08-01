@@ -36,7 +36,11 @@ function projectViewModel(name, username, path) {
     self.files = ko.observableArray();
     self.file = ko.observable();
     self.inProgress = ko.observable(true);
-    self.versionInfo = ko.observable();
+    self.versionInfo = ko.observable();   
+
+    self.projectGithubUrl = ko.computed(function () {
+        return 'https://github.com/' + self.username() + '/' + self.name();
+    });
 
     // build the url from the path provided
     self.buildUrl = function (path) {

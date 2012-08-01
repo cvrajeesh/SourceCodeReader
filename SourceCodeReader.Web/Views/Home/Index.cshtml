@@ -37,7 +37,7 @@
     </div>
     <div data-bind="with: project, visible: isReady">
         <div class="projectheader dockrow ">
-            <h3><span data-bind="text: username"></span>/<span data-bind="text: name"></span> <span class="label label-important" data-bind="text: versionInfo"></span></h3>     
+            <h3><span data-bind="text: username"></span>/<span data-bind="text: name"></span> <span class="label label-important"><a data-bind="text: versionInfo, attr: { href: projectGithubUrl}" class="versionInfo" target="_blank"></a></span></h3>     
             <ul class="breadcrumb"  data-bind="foreach: breadcrumbs">
               <li data-bind="visible: active">
                 <a data-bind="text: text, attr: {href: url}"></a> <span class="divider">/</span>

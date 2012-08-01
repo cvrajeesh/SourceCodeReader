@@ -147,3 +147,7 @@ body {
 {
     height: 150px;  
 }
+
+a.versionInfo,  a.versionInfo:hover, a.versionInfo:active{
+    color: #fff;
+}

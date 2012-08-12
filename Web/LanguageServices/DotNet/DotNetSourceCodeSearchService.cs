@@ -87,7 +87,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
         public void IndexProject(string username, string projectName, string projectDirectory)
         {
-            var projectRoot = new DirectoryInfo(projectDirectory).GetDirectories()[0];
+            var projectRoot = new DirectoryInfo(projectDirectory);
             string projectIdentifier = string.Format("{0}_{1}", username, projectName).ToLower();
             string indexCreatedStatusCheckFilePath = Path.Combine(this.applicationConfigurationProvider.ApplicationDataRoot, string.Format("{0}.status", projectIdentifier));
 
@@ -216,7 +216,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
                 string filePath = document.Get(ItemPath);
                 int location = Int32.Parse(document.Get(ItemLocation));
 
-                var projectCodeDirectory = this.GetProjectCodeDirectory(parameter.Username, parameter.Project);
+                var projectCodeDirectory = this.applicationConfigurationProvider.GetProjectSourceCodePath(parameter.Username, parameter.Project);
                 //string relativePath = filePath //projectCodeDirectory.MakeRelativePath(filePath);
                 return new Models.TokenResult
                 {
@@ -227,12 +227,6 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             }
       
             return null;
-        }
-
-        private DirectoryInfo GetProjectCodeDirectory(string username, string project)
-        {
-            var projectSourceCodeDirectory = this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project);
-            return new DirectoryInfo(projectSourceCodeDirectory).GetDirectories()[0];
         }
 
         public Models.DocumentInfo GetFileDetails(string filePath)

@@ -37,13 +37,13 @@ namespace SourceCodeReader.Web.Services.GitHub
         public ProjectItem GetContent(string username, string project, string path, ISourceCodeOpeningProgress openingProgressListener)
         {
             var projectSourceCodePath = this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project);
+            string projectIdentifier = string.Format("{0}_{1}", username, project);
             try
             {
                 if (!Directory.Exists(projectSourceCodePath))
                 {
-                    string projectIdentifier = string.Format("{0}_{1}", username, project);
-                    object __projectSpecificLock = ProjectDownloadLock.GetOrAdd(projectIdentifier, new object());
-                    lock (__projectSpecificLock)
+                    bool projectExtracted = false;
+                    this.ExecuteWithInAProjectContext(projectIdentifier, () =>
                     {
                         if (!Directory.Exists(projectSourceCodePath))
                         {
@@ -55,16 +55,17 @@ namespace SourceCodeReader.Web.Services.GitHub
                                 if (projectSelected == null)
                                 {
                                     openingProgressListener.OnProjectNotFound();
-                                    return null;
+                                    this.logger.Info("Couldn't find the specified the Github project {0}/{1}", username, project);
                                 }
+
                                 openingProgressListener.OnProjectFound();
-                                
+
                                 openingProgressListener.OnProjectDownloadStarted();
                                 var downloadStatus = this.DownloadZipBall(packagePath, projectSelected.DownloadPackageUrl);
                                 if (!downloadStatus)
                                 {
                                     openingProgressListener.OnProjectDownloadFailed();
-                                    return null;
+                                    this.logger.Info("Failed to download Github project {0}/{1}", username, project);
                                 }
 
                                 openingProgressListener.OnProjectDownloadCompleted();
@@ -74,14 +75,18 @@ namespace SourceCodeReader.Web.Services.GitHub
                             this.ExtractZipBall(packagePath, projectSourceCodePath);
 
                             this.editorService.RewriteExternalDependencies(username, project);
-                        }
-                    }
 
-                    // Try to remove the created lock object
-                    ProjectDownloadLock.TryRemove(projectIdentifier, out __projectSpecificLock);
+                            projectExtracted = true;
+                        }
+                    });
+
+                    if (!projectExtracted)
+                    {
+                        return null;
+                    }
                 }
 
-                openingProgressListener.OnBuildingWorkspace();                
+                openingProgressListener.OnBuildingWorkspace();
                 this.sourceCodeIndexingService.IndexProject(username, project, projectSourceCodePath);
                 openingProgressListener.OnProjectLoaded();
 
@@ -89,18 +94,44 @@ namespace SourceCodeReader.Web.Services.GitHub
                 projectItem.DownloadedDate = Directory.GetCreationTimeUtc(projectSourceCodePath).ToString("dd MMM yyyy hh:mm:ss UTC");
                 return projectItem;
             }
+            catch (PathTooLongException ex)
+            {
+                this.ExecuteWithInAProjectContext(projectIdentifier, () =>
+                {
+                    // Cleanup the extracted project directory
+                    if (Directory.Exists(projectSourceCodePath))
+                    {
+                        Directory.Delete(projectSourceCodePath, true);
+                    }
+                });
+
+                openingProgressListener.OnProjectLoadingError();
+                this.logger.Error(ex, "Path too long exception {0} from project {1}/{2} ", path, username, project);
+            }
             catch (Exception ex)
             {
                 openingProgressListener.OnProjectLoadingError();
-                this.logger.Error(ex, "An error has occured while getting the content for path {0} from project {1}/{2}", path, username, project);
-                return null;
+                this.logger.Error(ex, "An error has occured while getting the content for path {0} from project {1}/{2} ", path, username, project);
+            }            
+
+            return null;
+        }
+
+        private void ExecuteWithInAProjectContext(string projectIdentifier, Action codeToExecute)
+        {
+            object __projectSpecificLock = ProjectDownloadLock.GetOrAdd(projectIdentifier, new object());
+            lock (__projectSpecificLock)
+            {
+                codeToExecute();
             }
+
+            // Try to remove the created lock object
+            ProjectDownloadLock.TryRemove(projectIdentifier, out __projectSpecificLock);
         }
 
         private ProjectItem GetContentFromPath(string username, string project, string projectSourceCodePath, string path)
         {
-            var repositoryDirectory = new DirectoryInfo(projectSourceCodePath);
-            DirectoryInfo applicationRoot = repositoryDirectory.GetDirectories()[0];
+            DirectoryInfo applicationRoot = new DirectoryInfo(projectSourceCodePath);
             string currentDirectoryName = "root";
 
             if (!string.IsNullOrEmpty(path))
@@ -208,12 +239,66 @@ namespace SourceCodeReader.Web.Services.GitHub
             //Clean up the existing repository
             if (Directory.Exists(destinationDirectory))
             {
-                Directory.Delete(destinationDirectory, true);
+                DirectoryInfo directory = new DirectoryInfo(destinationDirectory);
+                foreach (FileInfo file in directory.GetFiles()) file.Delete();
+                foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+            }
+            else
+            {
+                Directory.CreateDirectory(destinationDirectory);
             }
 
-            using (var zipFile = ZipFile.Read(zipFileToExtract))
+            //using (var zipFile = ZipFile.Read(zipFileToExtract))
+            //{
+            //    zipFile.ExtractAll(destinationDirectory, ExtractExistingFileAction.OverwriteSilently);
+            //}
+            
+            using (ZipInputStream zipStream = new ZipInputStream(zipFileToExtract))
             {
-                zipFile.ExtractAll(destinationDirectory, ExtractExistingFileAction.OverwriteSilently);
+                string zipRootDirectoryName = string.Empty;
+                ZipEntry zipEntry = zipStream.GetNextEntry();
+                if (zipEntry == null)
+                {
+                    return;
+                }
+                else
+                {
+                    if (zipEntry.IsDirectory)
+                    {
+                        zipRootDirectoryName = zipEntry.FileName;
+                    }
+                }
+
+                while ((zipEntry = zipStream.GetNextEntry()) != null)
+                {
+                    string zipEntryPath = zipEntry.FileName;
+                    if (!string.IsNullOrEmpty(zipRootDirectoryName))
+                    {
+                        zipEntryPath = zipEntryPath.Replace(zipRootDirectoryName, string.Empty);
+                    }
+
+                    if (zipEntry.IsDirectory)
+                    {
+                        Directory.CreateDirectory(Path.Combine(destinationDirectory, zipEntryPath));
+                        continue;
+                    }
+
+                    string filename = Path.Combine(destinationDirectory, zipEntryPath);
+                    using (var fileStream = File.OpenWrite(filename))
+                    {
+                        CopyStream(zipStream, fileStream);
+                    }                    
+                }
+            }
+        }
+
+        private static void CopyStream(Stream input, Stream output)
+        {
+            byte[] buffer = new byte[8 * 1024];
+            int len;
+            while ((len = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                output.Write(buffer, 0, len);
             }
         }
     

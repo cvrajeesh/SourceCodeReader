@@ -52,8 +52,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SourceCodeReader.Web\SourceCodeReader.Web.csproj">
-      <Project>{B80F76F9-73B8-472A-8592-3DCC46CBC29D}</Project>
+    <ProjectReference Include="..\..\Web\SourceCodeReader.Web.csproj">
+      <Project>{b80f76f9-73b8-472a-8592-3dcc46cbc29d}</Project>
       <Name>SourceCodeReader.Web</Name>
     </ProjectReference>
   </ItemGroup>

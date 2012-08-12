@@ -31,7 +31,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
         public string BuildNavigatableSourceCodeFromFile(string username, string project, string path)
         {
-            var projectCodeDirectory = this.GetProjectCodeDirectory(username, project);
+            var projectCodeDirectory = new DirectoryInfo(this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project));
             string fullPath = Path.Combine(projectCodeDirectory.FullName, path.Replace(@"/", @"\"));
             string fileExtension = Path.GetExtension(fullPath);
             string sourceCode = File.ReadAllText(fullPath);
@@ -124,7 +124,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
         {
             findReferenceProgressListener.OnFindReferenceStarted();
 
-            var projectCodeDirectory = this.GetProjectCodeDirectory(parameter.Username, parameter.Project);
+            var projectCodeDirectory = new DirectoryInfo(this.applicationConfigurationProvider.GetProjectSourceCodePath(parameter.Username, parameter.Project));
            
             var solutionPath = FindSolutionPath(parameter.Username, parameter.Project);
             if (solutionPath == null)
@@ -182,7 +182,7 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
 
         private string FindSolutionPath(string username, string project)
         {
-            var projectCodeDirectory = this.GetProjectCodeDirectory(username, project);
+            var projectCodeDirectory = new DirectoryInfo(this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project));
             var solutions = projectCodeDirectory.GetFiles("*.sln", SearchOption.AllDirectories);
 
             if (solutions.Length > 0)
@@ -200,16 +200,10 @@ namespace SourceCodeReader.Web.LanguageServices.DotNet
             return null;
         }
 
-        private DirectoryInfo GetProjectCodeDirectory(string username, string project)
-        {
-            var projectSourceCodeDirectory = this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project);
-            return new DirectoryInfo(projectSourceCodeDirectory).GetDirectories()[0];
-        }
-
 
         public void RewriteExternalDependencies(string username, string project)
         {
-            var projectDirectory = this.GetProjectCodeDirectory(username, project);
+            var projectDirectory = new DirectoryInfo(this.applicationConfigurationProvider.GetProjectSourceCodePath(username, project));
             var projectFiles = projectDirectory.GetFiles("*.csproj", SearchOption.AllDirectories);
             var msBuildExteionpath32 = Path.Combine(this.applicationConfigurationProvider.ApplicationRoot, "TargetFiles", "MSBuild-MS-VS");
             foreach (var projectFile in projectFiles)

@@ -1,7 +1,8 @@
 ﻿@section PageSpecificMenu
 {
     <ul class="nav pull-right" data-bind="visible: projectIsActive">       
-        <li><a href="/">Close Sroject</a></li>
+        <li><a href="/">&times; Close Project</a></li>
+        <li><a href="http://twitter.com/share?url=http://sourcecodereader.apphb.com/&text=Code%20navigation%20for%20Github%20hosted%20C%23%20projects" target="_blank" class="twitterlogo" alt="Share this on Twitter"><span>Share this on Twitter</span></a></li>
     </ul>     
 }
 
@@ -45,6 +46,7 @@
               <li data-bind="visible: !active, text: text, css: { active: !active}">
               </li>        
             </ul>
+            
         </div>
         <div class="projectcontent stylishscrollbar dockrow scroll-x scroll-y">
             <div class="showprogress" data-bind="visible: inProgress"></div>
@@ -112,9 +114,9 @@
             <button class="close" data-bind="click: close">&times;</button>
             <div class="otherwindowheader"><span data-bind="text: title"></span></div>
             <div class="otherwindowpane container stylishscrollbar scroll-x scroll-y">
-                <div data-bind="text: content" class="message">
+                <pre data-bind="text: content">
 
-                </div>
+                </pre>
             </div>
         </div>
         <!-- /ko -->

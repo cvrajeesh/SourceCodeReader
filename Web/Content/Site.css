@@ -152,6 +152,15 @@ body {
     padding:7px 10px;
 }
 
+.twitterlogo {
+    background-image: url('/Images/twitter-bird-light-bgs.png');
+    width: 25px;
+    height: 15px;
+}
+
+    .twitterlogo span {
+        visibility: hidden;
+    }
 
 a.versionInfo,  a.versionInfo:hover, a.versionInfo:active{
     color: #fff;

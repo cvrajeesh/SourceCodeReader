@@ -269,6 +269,7 @@
     <Content Include="Content\jquery.mobile.theme-1.1.0.css" />
     <Content Include="Content\jquery.mobile.theme-1.1.0.min.css" />
     <Content Include="Content\Site.Mobile.css" />
+    <Content Include="Images\twitter-bird-light-bgs.png" />
     <Content Include="TargetFiles\MSBuild-MS-VS\v10.0\WebApplications\Microsoft.WebApplication.Build.Tasks.Dll" />
     <Content Include="TargetFiles\MSBuild-MS-VS\v11.0\WebApplications\Microsoft.WebApplication.Build.Tasks.Dll" />
     <Content Include="favicon.ico" />

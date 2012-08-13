@@ -105,12 +105,12 @@ namespace SourceCodeReader.Web.Services.GitHub
                     }
                 });
 
-                openingProgressListener.OnProjectLoadingError();
+                openingProgressListener.OnProjectLoadingError(ex.Message + Environment.NewLine + ex.StackTrace);
                 this.logger.Error(ex, "Path too long exception {0} from project {1}/{2} ", path, username, project);
             }
             catch (Exception ex)
             {
-                openingProgressListener.OnProjectLoadingError();
+                openingProgressListener.OnProjectLoadingError(ex.Message + Environment.NewLine + ex.StackTrace);
                 this.logger.Error(ex, "An error has occured while getting the content for path {0} from project {1}/{2} ", path, username, project);
             }            
 

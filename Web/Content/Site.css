@@ -126,7 +126,7 @@ body {
     display: none;
 }
 
-#findresult
+.otherwindow
 {
     border: 1px solid #ddd;
     border-bottom: none;
@@ -135,7 +135,7 @@ body {
     font-size: 0.9em;    
 }
 
-.findresultheader
+.otherwindowheader
 {
     padding: 7px 8px;
     background-color: #ddd;    
@@ -143,10 +143,15 @@ body {
     font-weight: bold;	
 }
 
-.findresultpane
+.otherwindowpane
 {
     height: 150px;  
 }
+
+.otherwindowpane .message {
+    padding:7px 10px;
+}
+
 
 a.versionInfo,  a.versionInfo:hover, a.versionInfo:active{
     color: #fff;

@@ -81,10 +81,11 @@
                 </table>
             </div>
         </div>
-        <div data-bind="with: $root.findResult, visible: $root.showFindResultWindow" id="findresult" class="dockrow">
-            <button class="close" data-bind="click: $root.closeFindReferenceWindow">&times;</button>
-            <div class="findresultheader"><span data-bind="text: $root.findResultWindowTitle"></span></div>
-            <div class="findresultpane container stylishscrollbar scroll-x scroll-y">
+         <!-- ko with: $root.findResult -->
+        <div data-bind="visible: show" class="otherwindow dockrow">
+            <button class="close" data-bind="click: close">&times;</button>
+            <div class="otherwindowheader"><span data-bind="text: title"></span></div>
+            <div class="otherwindowpane container stylishscrollbar scroll-x scroll-y">
                 <table class="table">
                     <thead>
 	                    <tr>		             
@@ -105,6 +106,19 @@
                 </table>
             </div>
         </div>
+        <!-- /ko -->
+        <!-- ko with: $root.output -->
+        <div data-bind="visible: show" class="otherwindow dockrow">
+            <button class="close" data-bind="click: close">&times;</button>
+            <div class="otherwindowheader"><span data-bind="text: title"></span></div>
+            <div class="otherwindowpane container stylishscrollbar scroll-x scroll-y">
+                <div data-bind="text: content" class="message">
+
+                </div>
+            </div>
+        </div>
+        <!-- /ko -->
+        
         <div class="statusbar dockrow" data-bind="text: $root.projectStatus">
         </div>
     </div>   

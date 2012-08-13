@@ -163,6 +163,32 @@ function projectInfoViewModel() {
 
 };
 
+/// Output window view model
+function outPutWindowViewModel(title, content) {
+    var self = this;
+
+    self.show = ko.observable(true);
+    self.title = title;
+    self.content = content;
+
+    self.close = function () {
+        self.show(false);
+    }
+}
+
+/// Find result window view model
+function findResultWindowViewModel(title, items) {
+    var self = this;
+
+    self.show = ko.observable(true);
+    self.title = title;
+    self.items = items;
+
+    self.close = function () {
+        self.show(false);
+    }
+}
+
 /// Application level view model class
 function appViewModel() {
     var self = this;
@@ -173,17 +199,19 @@ function appViewModel() {
     self.projectIsActive = ko.observable();
     self.projectStatus = ko.observable();
     self.findResult = ko.observable();
-    self.showFindResultWindow = ko.observable(false);
-    self.findResultWindowTitle = ko.observable();
+    self.output = ko.observable();
 
     self.projectHub = $.connection.projectHub;
 
     self.projectHub.projectStatus = function (data) {
-        if (data) {
-            // If completed
-            if (data.Status == 2) {
+        if (data) {            
+            if (data.Status == 2) { // If completed
                 self.projectStatus('');
-            } else {
+            } else if (data.Status == 3) { // Error     
+                self.projectStatus(data.Message);
+                self.output(new outPutWindowViewModel(data.Message, data.DetailedMessage));
+            }
+            else {
                 self.projectStatus(data.Message);
             }
         }
@@ -195,15 +223,11 @@ function appViewModel() {
         }
     };
 
-    self.closeFindReferenceWindow = function () {
-        self.showFindResultWindow(false);
-    };
-
     self.findReferences = function (kind, text, position) {
         var project = self.project();
         var currentFilePath = project.file().path;
-        var findReferencesUrl = '/api/solution/findreferences';
-        self.findResultWindowTitle('Find result for "' + text + '"');
+        var findReferencesUrl = '/api/solution/findreferences';        
+        
 
         $.post(findReferencesUrl,
             {
@@ -215,8 +239,7 @@ function appViewModel() {
                 kind: kind
             },
             function (result) {
-                self.findResult({ items: result });
-                self.showFindResultWindow(true);
+                self.findResult(new findResultWindowViewModel('Find result for "' + text + '"', result));
             }
         );
     };

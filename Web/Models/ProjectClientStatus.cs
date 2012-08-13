@@ -15,6 +15,7 @@ namespace SourceCodeReader.Web.Models
 
     public class ProjectClientStatus
     {
+        public string DetailedMessage { get; set; }
         
         public string Message { get; set; }
 

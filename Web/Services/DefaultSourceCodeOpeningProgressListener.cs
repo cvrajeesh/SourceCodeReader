@@ -50,9 +50,9 @@ namespace SourceCodeReader.Web.Services
         }
 
 
-        public void OnProjectLoadingError()
+        public void OnProjectLoadingError(string message)
         {
-            this.Caller.projectStatus(new ProjectClientStatus { Status = ProjectStatus.Error, Message = "An error has occured while loading the project." });
+            this.Caller.projectStatus(new ProjectClientStatus { Status = ProjectStatus.Error, Message = "An error has occured while loading the project.", DetailedMessage = message });
         }
 
 
